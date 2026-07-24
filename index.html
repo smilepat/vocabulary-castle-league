@@ -199,6 +199,9 @@
   <div class="foot">기록은 <b>이 기기(브라우저)</b>의 순위표에만 저장돼요 · 서버 전송 없음</div>
 </div>
 
+<!-- 콘텐츠 데이터(단어 뱅크·지문): 문항 추가/수정은 이 파일만 편집 -->
+<script src="data/words.js"></script>
+
 <script>
 'use strict';
 /* =========================================================================
@@ -220,69 +223,57 @@ const R_SCOUT=0, R_KEEPER=1, R_SCRIBE=2, R_HOLDER=3;
 /* 단서 확인(패스) 순서 — 기록자가 마지막(정답 입력 담당이므로 기기가 그에게서 끝남) */
 const PASS_ORDER = [R_KEEPER, R_SCOUT, R_HOLDER, R_SCRIBE];
 
-/* ---------- 상수: 문제 데이터 ---------- */
-/* 각 퍼즐: answer, ko(뜻), clues[역할index] = HTML 단서 */
-const PUZZLE_BINOCULARS = {
-  answer:'binoculars', ko:'망원경 / 쌍안경',
-  clues:{
-    [R_KEEPER]: '뜻(정의): <b>"멀리 있는 물체를 두 눈으로 확대해 보는 도구"</b>',
-    [R_SCRIBE]: '첫 글자: <b>b</b> · 글자 수: <b>10</b>',
-    [R_SCOUT]:  '예문: <b>"The guard used the ______ to watch the distant gate."</b>',
-    [R_HOLDER]: '철자 조각: <b>bin + ocular + s</b><br><span style="font-size:12px;color:var(--sub);">(ocular = 눈과 관련된)</span>',
-  },
-};
-const PUZZLE_OBSTACLE = {
-  answer:'obstacle', ko:'장애물',
-  clues:{
-    [R_KEEPER]: '뜻(정의): <b>"길을 가로막아 나아가지 못하게 하는 것 — 장애물"</b>',
-    [R_SCRIBE]: '첫 글자: <b>o</b> · 글자 수: <b>8</b>',
-    [R_SCOUT]:  '예문: <b>"A huge rock was an ______ on the road to the castle."</b>',
-    [R_HOLDER]: '어원 조각: <b>ob(맞서) + sta(서다) + cle</b><br><span style="font-size:12px;color:var(--sub);">(길 앞에 "맞서 서 있는" 것!)</span>',
-  },
-};
-const PUZZLE_APPROACH = {
-  answer:'approach', ko:'접근하다',
-  clues:{
-    [R_KEEPER]: '뜻(정의): <b>"가까이 다가가다, 접근하다"</b>',
-    [R_SCRIBE]: '첫 글자: <b>a</b> · 글자 수: <b>8</b>',
-    [R_SCOUT]:  '예문: <b>"Be quiet as we ______ the castle gate at night."</b>',
-    [R_HOLDER]: '어원 조각: <b>ap(~쪽으로) + proach(가까이)</b><br><span style="font-size:12px;color:var(--sub);">(proach는 라틴어 prope = "가까운"에서!)</span>',
-  },
-};
+/* ---------- 콘텐츠 로딩: 단어 뱅크 + 지문 (data/words.js) ----------
+   문항 추가·수정은 data/words.js만 편집하면 됩니다. (코드 변경 불필요) */
+if(!window.VCL_DATA){
+  document.getElementById('stage').innerHTML =
+    '<div class="panel"><div class="ptitle">⚠ 콘텐츠를 불러오지 못했어요</div>' +
+    '<div class="pdesc">data/words.js 파일을 찾을 수 없습니다. index.html과 같은 폴더에 ' +
+    '<b>data</b> 폴더가 함께 있는지 확인해 주세요.</div></div>';
+  throw new Error('VCL_DATA missing — data/words.js not loaded');
+}
 
-/* ---------- 상수: 왕좌의 칼 — 수능형 지문 협력 복원 (Phase 2 클라이맥스) ---------- */
-/* parts[i] 뒤에 blanks[i]가 끼어드는 구조 (parts 7개 + blanks 6개) */
-const THRONE = {
-  parts: [
-    'A difficult problem is not always an ', ' to learning. Students may ',
-    ' deeper knowledge when they try to ', ' incomplete information. They must compare ',
-    ', listen to different ', ', and decide which details are ', '.',
-  ],
-  blanks: [
-    { no:'①', answer:'obstacle',     accept:['obstacle'],                   ko:'장애물' },
-    { no:'②', answer:'acquire',      accept:['acquire'],                    ko:'획득하다·얻다' },
-    { no:'③', answer:'interpret',    accept:['interpret'],                  ko:'이해하고 해석하다' },
-    { no:'④', answer:'evidence',     accept:['evidence'],                   ko:'증거' },
-    { no:'⑤', answer:'perspectives', accept:['perspectives','perspective'], ko:'관점' },
-    { no:'⑥', answer:'significant',  accept:['significant'],                ko:'중요한·의미 있는' },
-  ],
-  clues:{
-    [R_KEEPER]: `핵심 어휘 의미:<br>
-      · 빈칸 ① : 뜻 <b>'장애물'</b> (첫 글자 <b>o</b>, <b>8글자</b>)<br>
-      · 빈칸 ② : 뜻 <b>'(지식·기술을) 획득하다·얻다'</b> (첫 글자 <b>a</b>)`,
-    [R_SCOUT]: `첫 문장 & 중심 생각 & 논리 흐름:<br>
-      · 지문의 중심 생각: <b>"어려운 문제가 늘 학습의 [①]인 것은 아니다 — 오히려 배움의 기회다"</b><br>
-      · 빈칸 ⑤ : '서로 다른 <b>[관점]</b>들을 듣는다' (첫 글자 <b>p</b>, 보통 <b>복수형</b>)`,
-    [R_HOLDER]: `어원 & 근거:<br>
-      · 빈칸 ③ : '불완전한 정보를 [&nbsp;&nbsp;&nbsp;]하려 할 때' — <b>inter-</b> 로 시작<br>
-      <span style="font-size:12px;color:var(--sub);">(inter=사이, pret=풀이하다 → "사이를 풀이하다 = 해석하다")</span><br>
-      · 빈칸 ④ : '[&nbsp;&nbsp;&nbsp;]를 비교한다' — 뜻 <b>'증거'</b> (<b>evi-</b> 로 시작)`,
-    [R_SCRIBE]: `마지막 문장 & 결론:<br>
-      · 빈칸 ⑥ : "어떤 세부사항이 [&nbsp;&nbsp;&nbsp;]한지 결정한다" — 뜻 <b>'중요한·의미 있는'</b>
-      (첫 글자 <b>s</b>, 안에 <b>sign</b> 이 보임)<br>
-      <span style="font-size:12px;color:var(--sub);">(그리고 여섯 빈칸의 최종 입력도 기록자의 몫!)</span>`,
-  },
-};
+/* 단어 레코드 정규화: answer 소문자화, 첫 글자·글자 수 계산, accept 기본값([answer]) */
+function normalizeWord(w){
+  const answer = String(w.answer).toLowerCase();
+  const accept = (w.accept && w.accept.length ? w.accept : [answer]).map(s=>String(s).toLowerCase());
+  return Object.assign({}, w, { answer, first: answer[0], length: answer.length, accept });
+}
+const WORD_BANK = {};
+VCL_DATA.words.forEach(w=>{ WORD_BANK[w.id] = normalizeWord(w); });
+function word(id){
+  const w = WORD_BANK[id];
+  if(!w) throw new Error('알 수 없는 단어 id: ' + id);
+  return w;
+}
+
+/* 단어 1개 → 역할별 4단서 자동 생성 (뜻 / 형태 / 문맥 / 어원) */
+function buildClues(w){
+  const m = w.morphemes || { label:'어원 조각', parts:[], gloss:'' };
+  return {
+    [R_KEEPER]: `뜻(정의): <b>"${w.def_ko}"</b>`,
+    [R_SCRIBE]: `첫 글자: <b>${w.first}</b> · 글자 수: <b>${w.length}</b>`,
+    [R_SCOUT]:  `예문: <b>"${w.example}"</b>`,
+    [R_HOLDER]: `${m.label || '어원 조각'}: <b>${(m.parts||[]).join(' + ')}</b>` +
+                (m.gloss ? `<br><span style="font-size:12px;color:var(--sub);">(${m.gloss})</span>` : ''),
+  };
+}
+
+/* 정보차 퍼즐 객체(옛 PUZZLE_* 상수 대체) — 단어 뱅크에서 즉석 생성 */
+function puzzleFromWord(id){
+  const w = word(id);
+  return { word:w, answer:w.answer, accept:w.accept, ko:(w.ko||[]).join(' / '), clues:buildClues(w) };
+}
+
+/* ---------- 지문(왕좌의 칼): data/words.js의 passages[0] ---------- */
+function normalizePassage(p){
+  const blanks = p.blanks.map(b=>Object.assign({}, b, {
+    accept:(b.accept && b.accept.length ? b.accept : [b.answer]).map(s=>String(s).toLowerCase()),
+  }));
+  return Object.assign({}, p, { blanks });
+}
+const THRONE = normalizePassage(VCL_DATA.passages[0]);
+
 /* 지문을 ______①~⑥ 표기로 렌더링 */
 function thronePassageHtml(){
   return '<div class="passage">📜 ' + THRONE.parts.map((t,i)=>
@@ -432,7 +423,7 @@ SCREENS.briefing = function(){
     game.startTime = Date.now();     // ⏱ 소요 시간은 여기(퍼즐 시작)부터 측정
     startHud();
     go('puzzle', {
-      puzzle: PUZZLE_BINOCULARS,
+      puzzle: puzzleFromWord('binoculars'),
       title: '🌫 안개 낀 성 앞 — 정보차 문제 #1',
       desc: '성으로 가려면 먼저 <b>정찰 도구</b>가 필요해요. 네 개의 단서를 합쳐 이 단어를 찾아내면 아이템을 얻습니다!',
       onSolved: ()=> showTelescopeReward(),
@@ -523,7 +514,7 @@ SCREENS.puzzle = function(opts){
       const val = input.value.trim().toLowerCase();
       if(!val){ input.focus(); return; }
       game.attempts++;
-      if(val === p.answer){
+      if(p.accept.includes(val)){
         game.correct++;
         opts.onSolved();
       } else {
@@ -649,7 +640,7 @@ SCREENS.locksIntro = function(){
     </div>`;
   $('btnLock1').addEventListener('click', ()=>{
     go('puzzle', {
-      puzzle: PUZZLE_OBSTACLE,
+      puzzle: puzzleFromWord('obstacle'),
       title: '🔒 첫 번째 자물쇠 — 정보차 문제 #2',
       desc: '네 단서를 합쳐 자물쇠에 새겨진 단어를 찾아요.',
       lockLabel: `<div class="locks"><span class="lk">🔒</span><span class="lk" style="opacity:.35;">🔒</span></div>`,
@@ -673,7 +664,7 @@ function lockSolved(which){
       </div>`;
     $('btnLock2').addEventListener('click', ()=>{
       go('puzzle', {
-        puzzle: PUZZLE_APPROACH,
+        puzzle: puzzleFromWord('approach'),
         title: '🔒 두 번째 자물쇠 — 정보차 문제 #3',
         desc: '마지막 자물쇠! 이번에도 단서를 합쳐 봐요.',
         lockLabel: `<div class="locks"><span class="lk open">🔓</span><span class="lk">🔒</span></div>`,
