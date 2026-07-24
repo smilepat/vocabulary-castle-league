@@ -762,6 +762,7 @@ SCREENS.throne = function(){
   let step = 0;             // PASS_ORDER 인덱스 (0..3), 4 = 빈칸 입력 단계
   let revealed = false;     // 현재 사람이 단서를 펼쳐 봤는지
   let triedWrong = false;   // 오답 제출 이력(빨간 표시용)
+  let chunkIdx = 0;         // P1: 현재 복원 중인 문장(청크) 인덱스
   const values = ['','','','','',''];                         // 입력값 유지
   const solved = [false,false,false,false,false,false];       // 빈칸별 정답 여부
 
@@ -814,61 +815,88 @@ SCREENS.throne = function(){
     }
   }
 
+  /* 청크(문장) 렌더 헬퍼: 완성 문장 / 현재 문장(빈칸 표기) */
+  function assembledSentence(chunk){
+    let html = '';
+    chunk.parts.forEach((t,i)=>{
+      html += t;
+      if(i < chunk.blankIdx.length){
+        const gi = chunk.blankIdx[i];
+        html += `<b style="color:var(--accent2);">${esc(values[gi])}</b>`;
+      }
+    });
+    return html;
+  }
+  function currentSentence(chunk){
+    let html = '';
+    chunk.parts.forEach((t,i)=>{
+      html += t;
+      if(i < chunk.blankIdx.length){
+        html += `<b>______${THRONE.blanks[chunk.blankIdx[i]].no}</b>`;
+      }
+    });
+    return html;
+  }
+
+  /* P1: 긴 지문을 한 문장(청크)씩 복원하는 입력 단계 */
   function renderAnswer(msgHtml){
     const scribe = playerForRole(R_SCRIBE);
-    const fields = THRONE.blanks.map((b,i)=>{
-      const cls = solved[i] ? 'ok' : (triedWrong ? 'bad' : '');
+    const chunk = THRONE.chunks[chunkIdx];
+    const total = THRONE.chunks.length;
+    const doneHtml = THRONE.chunks.slice(0, chunkIdx).map(assembledSentence).join(' ');
+    const inputs = chunk.blankIdx.map(gi=>{
+      const b = THRONE.blanks[gi];
+      const cls = solved[gi] ? 'ok' : (triedWrong ? 'bad' : '');
       return `<div>
-        <label>빈칸 ${b.no} ${solved[i] ? '✅' : ''}</label>
-        <input id="inB${i}" value="${esc(values[i])}" placeholder="${b.no}에 들어갈 단어…"
-          autocomplete="off" autocapitalize="off" spellcheck="false"
-          class="${cls}" ${solved[i] ? 'readonly' : ''}>
+        <label>빈칸 ${b.no} ${solved[gi] ? '✅' : ''}</label>
+        <input id="inB${gi}" value="${esc(values[gi])}" placeholder="${b.no}에 들어갈 단어…"
+          autocomplete="off" autocapitalize="off" spellcheck="false" class="${cls}">
       </div>`;
     }).join('');
     stage.innerHTML = `
       <div class="panel">
-        <div class="ptitle">⚔️ 왕좌의 칼 — 수능형 지문 협력 복원</div>
-        <div class="pdesc">모든 단서가 공유됐어요! 팀이 <b>말로 의논</b>해서 여섯 빈칸을 정하세요.</div>
-        ${thronePassageHtml()}
+        <div class="ptitle">⚔️ 왕좌의 칼 — 문장 ${chunkIdx+1} / ${total}</div>
+        <div class="pdesc">긴 지문을 <b>한 문장씩</b> 복원해요. 이 문장의 빈칸만 채우면 다음 문장이 열립니다!</div>
+        ${doneHtml ? `<div class="passage" style="opacity:.8;">📜 ${doneHtml}</div>` : ''}
+        <div class="passage" style="border-left:4px solid var(--accent);">✍️ ${currentSentence(chunk)}</div>
+        <div class="prog" style="margin-top:10px;">${THRONE.chunks.map((_,i)=>
+          `<div class="p ${i<chunkIdx?'done':(i===chunkIdx?'now':'')}"></div>`).join('')}</div>
         <div class="pass" style="margin-top:12px;">
-          <div class="big">✍️</div>
-          <div class="who">기록자 <span class="nm">${esc(scribe)}</span>만<br>빈칸을 입력할 수 있어요</div>
-          <div class="inst">팀이 합의한 여섯 단어를 기록자가 입력합니다. (대소문자는 상관없어요)</div>
-          <div class="blankgrid">${fields}</div>
-          <button id="btnSubmit" style="margin-top:12px;">🗡 지문 복원 제출 (기록자 ${esc(scribe)})</button>
+          <div class="who">기록자 <span class="nm">${esc(scribe)}</span>가 이 문장의 빈칸을 입력</div>
+          <div class="inst">팀이 합의한 단어를 기록자가 입력합니다. (대소문자는 상관없어요)</div>
+          <div class="blankgrid">${inputs}</div>
+          <button id="btnSubmit" style="margin-top:12px;">🗡 이 문장 복원 (기록자 ${esc(scribe)})</button>
           <button id="btnReview" class="sec" style="margin-top:8px;">🔄 단서 다시 돌려보기 (힌트 사용으로 기록돼요)</button>
           <div id="answerMsg">${msgHtml || ''}</div>
         </div>
       </div>`;
-    const firstOpen = solved.findIndex(s=>!s);
-    if(firstOpen >= 0) $('inB'+firstOpen).focus();
+    const firstGi = chunk.blankIdx.find(gi=>!solved[gi]);
+    if(firstGi !== undefined) $('inB'+firstGi).focus();
     function submit(){
-      // 입력값 읽어 저장
-      THRONE.blanks.forEach((b,i)=>{ values[i] = $('inB'+i).value.trim(); });
-      if(values.every(v=>!v)){ $('inB0').focus(); return; }  // 전부 비어 있으면 시도로 치지 않음
+      chunk.blankIdx.forEach(gi=>{ values[gi] = $('inB'+gi).value.trim(); });
+      if(chunk.blankIdx.every(gi=>!values[gi])){ const f = $('inB'+chunk.blankIdx[0]); if(f) f.focus(); return; }
       game.attempts++;
       const wrong = [];
-      THRONE.blanks.forEach((b,i)=>{
-        const v = values[i].toLowerCase();
-        if(b.accept.includes(v)) solved[i] = true;
-        else { solved[i] = false; wrong.push(b.no); }
+      chunk.blankIdx.forEach(gi=>{
+        const v = values[gi].toLowerCase();
+        if(THRONE.blanks[gi].accept.includes(v)) solved[gi] = true;
+        else { solved[gi] = false; wrong.push(THRONE.blanks[gi].no); }
       });
       if(wrong.length === 0){
         game.correct++;
-        throneVictory();
+        triedWrong = false;
+        if(chunkIdx + 1 >= total){ throneVictory(); }
+        else { chunkIdx++; renderAnswer('<div class="okmsg">문장 복원 성공! 다음 문장이 열렸어요 ✨</div>'); }
       } else {
         triedWrong = true;
-        renderAnswer(`<div class="wrongmsg">🗡 칼이 꿈쩍도 하지 않아요! 빈칸 <b>${wrong.join(' ')}</b>이(가) 아직 맞지 않아요.
-          맞은 빈칸은 그대로 두고, 빨간 칸만 단서를 되짚어 고쳐 보세요.</div>`);
+        renderAnswer(`<div class="wrongmsg">🗡 빈칸 <b>${wrong.join(' ')}</b>이(가) 아직 맞지 않아요. 단서를 되짚어 고쳐 보세요.</div>`);
       }
     }
     $('btnSubmit').addEventListener('click', submit);
-    THRONE.blanks.forEach((b,i)=>{
-      $('inB'+i).addEventListener('keydown', e=>{ if(e.key === 'Enter') submit(); });
-    });
+    chunk.blankIdx.forEach(gi=>{ $('inB'+gi).addEventListener('keydown', e=>{ if(e.key === 'Enter') submit(); }); });
     $('btnReview').addEventListener('click', ()=>{
       game.hintCount++;         // 다시 돌려보기 = 힌트 사용으로 집계
-      THRONE.blanks.forEach((b,i)=>{ values[i] = $('inB'+i).value.trim(); }); // 입력값 보존
+      chunk.blankIdx.forEach(gi=>{ values[gi] = $('inB'+gi).value.trim(); }); // 입력값 보존
       step = 0; revealed = false; render();
     });
   }

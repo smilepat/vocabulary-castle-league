@@ -114,6 +114,14 @@
         { no: '⑤', answer: 'perspectives', accept: ['perspectives', 'perspective'], ko: '관점' },
         { no: '⑥', answer: 'significant',  accept: ['significant'],                ko: '중요한·의미 있는' },
       ],
+      /* P1: 마이크로 청크 — 긴 지문을 "문장 단위"로 쪼개 한 번에 하나씩 복원.
+         각 청크의 parts는 blankIdx(전역 blanks 인덱스)와 번갈아 이어붙는다.
+         (parts.length === blankIdx.length + 1) */
+      chunks: [
+        { parts: ['A difficult problem is not always an ', ' to learning.'], blankIdx: [0] },
+        { parts: ['Students may ', ' deeper knowledge when they try to ', ' incomplete information.'], blankIdx: [1, 2] },
+        { parts: ['They must compare ', ', listen to different ', ', and decide which details are ', '.'], blankIdx: [3, 4, 5] },
+      ],
       clues: {
         1: `핵심 어휘 의미:<br>
       · 빈칸 ① : 뜻 <b>'장애물'</b> (첫 글자 <b>o</b>, <b>8글자</b>)<br>
