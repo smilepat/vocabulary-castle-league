@@ -303,7 +303,28 @@ const game = {
   hintCount:0,        // "단서 다시 돌려보기" 사용 횟수
   items:[],           // 획득 아이템 이모지
   finalTime:0,        // 완주 시 확정된 소요 시간(초)
+  run:null,           // 이번 판(런) 구성: { lockIds:[...] } — 매판 랜덤 (P2 로그라이크)
+  solvedWords:[],     // 이번 판에 정복한 단어 id (승리 화면·복습용)
 };
+
+/* ---------- P2: 매판 랜덤 런 구성 (로그라이크) ----------
+   인트로(binoculars)는 고정(망원경 획득 연출), 자물쇠 단어는 매판 랜덤 추출 →
+   같은 판을 반복해도 문제가 달라져 재플레이 가치가 생긴다. */
+const INTRO_ID = 'binoculars';
+const LOCKS_PER_RUN = 2;   // 3번 문의 자물쇠 개수와 일치
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function composeRun(){
+  const pool = Object.keys(WORD_BANK).filter(id => id !== INTRO_ID);
+  const lockIds = shuffle(pool.slice()).slice(0, LOCKS_PER_RUN);
+  game.run = { lockIds };
+  game.solvedWords = [];
+}
 
 /* 역할 → 플레이어 배정. round 1: 역할r → 플레이어r / round 2: 한 칸 순환 */
 function playerForRole(roleIdx){
@@ -420,10 +441,11 @@ SCREENS.briefing = function(){
       <button id="btnBrief" style="margin-top:14px;" class="alt">🌫 안개 속 어휘성으로 출발! (타이머 시작)</button>
     </div>`;
   $('btnBrief').addEventListener('click', ()=>{
+    composeRun();                    // 🎲 이번 판의 자물쇠 단어를 랜덤 구성 (P2)
     game.startTime = Date.now();     // ⏱ 소요 시간은 여기(퍼즐 시작)부터 측정
     startHud();
     go('puzzle', {
-      puzzle: puzzleFromWord('binoculars'),
+      puzzle: puzzleFromWord(INTRO_ID),
       title: '🌫 안개 낀 성 앞 — 정보차 문제 #1',
       desc: '성으로 가려면 먼저 <b>정찰 도구</b>가 필요해요. 네 개의 단서를 합쳐 이 단어를 찾아내면 아이템을 얻습니다!',
       onSolved: ()=> showTelescopeReward(),
@@ -539,6 +561,7 @@ SCREENS.puzzle = function(opts){
    ========================================================================= */
 function showTelescopeReward(){
   game.items.push('🔭');
+  game.solvedWords.push(INTRO_ID);
   updateHudItems();
   stage.innerHTML = `
     <div class="panel">
@@ -638,43 +661,54 @@ SCREENS.locksIntro = function(){
       ${rolesHtml()}
       <button id="btnLock1" class="alt" style="margin-top:14px;">🔒 첫 번째 자물쇠 도전 →</button>
     </div>`;
-  $('btnLock1').addEventListener('click', ()=>{
-    go('puzzle', {
-      puzzle: puzzleFromWord('obstacle'),
-      title: '🔒 첫 번째 자물쇠 — 정보차 문제 #2',
-      desc: '네 단서를 합쳐 자물쇠에 새겨진 단어를 찾아요.',
-      lockLabel: `<div class="locks"><span class="lk">🔒</span><span class="lk" style="opacity:.35;">🔒</span></div>`,
-      onSolved: ()=> lockSolved(1),
-    });
-  });
+  $('btnLock1').addEventListener('click', ()=> startLockPuzzle(0));
 };
 
-function lockSolved(which){
-  if(which === 1){
-    stage.innerHTML = `
-      <div class="panel">
-        <div class="celebrate">
-          <div style="font-size:30px;">🔓✨</div>
-          <div class="word">OBSTACLE</div>
-          <div class="muted" style="margin-top:4px;">ob(맞서)+sta(서다)+cle — 길을 막고 "맞서 서 있는" 장애물</div>
-          <div class="locks"><span class="lk open">🔓</span><span class="lk">🔒</span></div>
-          <div class="okmsg">첫 번째 자물쇠 해제! 장애물(obstacle)을 넘었으니, 이제 성문에 다가갈(approach) 차례.</div>
-          <button id="btnLock2" class="alt" style="margin-top:12px;">🔒 두 번째 자물쇠 도전 →</button>
-        </div>
-      </div>`;
-    $('btnLock2').addEventListener('click', ()=>{
-      go('puzzle', {
-        puzzle: puzzleFromWord('approach'),
-        title: '🔒 두 번째 자물쇠 — 정보차 문제 #3',
-        desc: '마지막 자물쇠! 이번에도 단서를 합쳐 봐요.',
-        lockLabel: `<div class="locks"><span class="lk open">🔓</span><span class="lk">🔒</span></div>`,
-        onSolved: ()=> lockSolved(2),
-      });
-    });
-  } else {
-    // 두 번째 자물쇠까지 해제 → 성문 개방 연출
-    go('gateOpen');
-  }
+/* 자물쇠 퍼즐 시작 — idx번째 자물쇠(랜덤 단어) 도전 */
+function startLockPuzzle(idx){
+  const total = game.run.lockIds.length;
+  const lockRow = game.run.lockIds.map((_,i)=>
+    i < idx ? '<span class="lk open">🔓</span>'
+    : i === idx ? '<span class="lk">🔒</span>'
+    : '<span class="lk" style="opacity:.35;">🔒</span>'
+  ).join('');
+  go('puzzle', {
+    puzzle: puzzleFromWord(game.run.lockIds[idx]),
+    title: `🔒 ${idx+1}번째 자물쇠 — 정보차 문제 #${idx+2}`,
+    desc: (idx === total-1)
+      ? '마지막 자물쇠! 이번에도 네 단서를 합쳐 봐요.'
+      : '네 단서를 합쳐 자물쇠에 새겨진 단어를 찾아요.',
+    lockLabel: `<div class="locks">${lockRow}</div>`,
+    onSolved: ()=> lockSolved(idx),
+  });
+}
+
+/* 자물쇠 해제 연출 — 데이터 구동(랜덤 단어에 맞춰 자동 생성) */
+function lockSolved(idx){
+  const w = word(game.run.lockIds[idx]);
+  game.solvedWords.push(w.id);
+  const total = game.run.lockIds.length;
+  const opened = idx + 1;
+  const isLast = opened >= total;
+  const lockRow = game.run.lockIds.map((_,i)=>
+    i < opened ? '<span class="lk open">🔓</span>' : '<span class="lk">🔒</span>'
+  ).join('');
+  const m = w.morphemes || { parts:[] };
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="celebrate">
+        <div style="font-size:30px;">🔓✨</div>
+        <div class="word">${esc(w.answer.toUpperCase())}</div>
+        <div class="muted" style="margin-top:4px;">${esc((m.parts||[]).join(' + '))} — ${esc((w.ko||[]).join(' / '))}</div>
+        <div class="locks">${lockRow}</div>
+        <div class="okmsg">${opened}번째 자물쇠 해제! ${isLast
+          ? '마지막 자물쇠까지 풀렸어요 — 성문이 열립니다!'
+          : '좋아요, 다음 자물쇠로 나아가요.'}</div>
+        <button id="btnNextLock" class="alt" style="margin-top:12px;">${isLast
+          ? '⚜️ 성문 개방 →' : '🔒 다음 자물쇠 도전 →'}</button>
+      </div>
+    </div>`;
+  $('btnNextLock').addEventListener('click', ()=> isLast ? go('gateOpen') : startLockPuzzle(idx+1));
 }
 
 /* ---------- 성문 개방 연출 ---------- */
@@ -849,6 +883,7 @@ function throneVictory(){
   stopHud();
   $('hudTimer').textContent = fmtTime(game.finalTime);
   game.items.push('👑');
+  THRONE.blanks.forEach(b=>{ if(!game.solvedWords.includes(b.answer)) game.solvedWords.push(b.answer); });
   updateHudItems();
   stage.innerHTML = `
     <div class="panel">
@@ -885,6 +920,8 @@ function saveBoard(arr){
 
 SCREENS.victory = function(){
   const acc = game.attempts ? Math.round(game.correct / game.attempts * 100) : 100;
+  const conquered = [...new Set(game.solvedWords)].map(id => WORD_BANK[id] ? WORD_BANK[id].answer : id);
+  const conqueredHtml = conquered.length ? conquered.join(' · ') : '—';
   const usedHelp = [];
   if(game.telescopeUsed) usedHelp.push('🔭 망원경');
   if(game.hintCount > 0) usedHelp.push('🔄 단서 다시보기 ×' + game.hintCount);
@@ -926,9 +963,8 @@ SCREENS.victory = function(){
           <div class="v">${acc}% <span class="muted">(${game.correct}/${game.attempts}회)</span></div></div>
         <div class="stat"><div class="k">🧰 힌트·망원경 사용</div>
           <div class="v small">${helpText}</div></div>
-        <div class="stat"><div class="k">🏅 오늘 정복한 단어</div>
-          <div class="v small">binoculars · obstacle · approach<br>
-            <span style="font-size:12px;">obstacle · acquire · interpret · evidence · perspectives · significant</span></div></div>
+        <div class="stat" style="grid-column:1/-1;"><div class="k">🏅 오늘 정복한 단어 (${conquered.length})</div>
+          <div class="v small">${esc(conqueredHtml)}</div></div>
         <div class="stat" style="grid-column:1/-1;"><div class="k">⚔️ 왕좌의 칼</div>
           <div class="v small">수능형 지문 복원 완료 ✅</div></div>
       </div>
@@ -950,7 +986,8 @@ SCREENS.victory = function(){
   $('btnRetry').addEventListener('click', ()=>{
     // 팀 정보는 유지, 진행 상태만 초기화하고 브리핑부터 재시작
     Object.assign(game, { round:1, startTime:null, penalty:0, attempts:0, correct:0,
-                          telescopeUsed:false, hintCount:0, items:[], finalTime:0 });
+                          telescopeUsed:false, hintCount:0, items:[], finalTime:0,
+                          run:null, solvedWords:[] });
     stopHud();
     $('hud').classList.add('hidden');
     go('briefing');
