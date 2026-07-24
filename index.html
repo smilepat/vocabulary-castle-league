@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary Castle League · 학교대항 어휘성 공략전</title>
+<style>
+  /* ===== 공통 디자인 토큰 ===== */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  :root{--bg:#f0f4fa;--card:#ffffff;--line:#dadce0;--ink:#202124;--sub:#5f6368;
+        --accent:#1a73e8;--accent-d:#1765cc;--accent2:#1e8e3e;--accent2-d:#177a34;
+        --gold:#b8860b;--gold-bg:#fdf6e3;--gold-line:#f0e0b0;
+        --shadow:0 1px 2px rgba(60,64,67,.12),0 1px 3px rgba(60,64,67,.08);
+        --shadow-h:0 4px 12px rgba(60,64,67,.16),0 2px 4px rgba(60,64,67,.10);}
+  body{background:radial-gradient(1000px 500px at 50% -8%,#e8f0fe,var(--bg));
+       font-family:'Google Sans','Roboto','Segoe UI','Malgun Gothic',sans-serif;color:var(--ink);
+       min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:14px;}
+  .wrap{width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px;}
+  a.back{align-self:flex-start;font-size:13px;color:var(--accent);text-decoration:none;font-weight:600;}
+  a.back:hover{text-decoration:underline;}
+  header.hero{text-align:center;}
+  .logo{font-size:46px;line-height:1;}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-top:6px;}
+  h1 small{display:block;font-size:12px;color:var(--sub);font-weight:400;margin-top:5px;}
+  .slogan{margin-top:10px;font-size:13px;line-height:1.6;color:#6b5310;
+          background:linear-gradient(180deg,#fdf6e3,#fbf1d5);border:1px solid var(--gold-line);
+          border-radius:12px;padding:10px 14px;display:inline-block;}
+  .slogan b{color:var(--gold);}
+  .concept{font-size:12.5px;color:var(--sub);margin-top:8px;line-height:1.6;}
+  .concept b{color:var(--accent2);}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);}
+  .ptitle{font-size:16px;font-weight:700;margin-bottom:4px;}
+  .pdesc{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px;}
+  label{font-size:12px;color:var(--sub);display:block;margin-bottom:5px;font-weight:500;}
+  input{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;
+        padding:11px 13px;color:var(--ink);font-size:14px;font-family:inherit;}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,115,232,.15);}
+  .field{margin-bottom:11px;}
+  .two{display:flex;gap:10px;}.two>div{flex:1;}
+  button{background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:14px;
+         font-weight:600;cursor:pointer;width:100%;box-shadow:var(--shadow);transition:background .15s,box-shadow .15s;
+         font-family:inherit;}
+  button:hover{background:var(--accent-d);box-shadow:var(--shadow-h);}
+  button:active{transform:translateY(1px);}
+  button:disabled{background:#c6d0dd;cursor:not-allowed;box-shadow:none;transform:none;}
+  button.alt{background:var(--accent2);}button.alt:hover{background:var(--accent2-d);}
+  button.sec{background:#fff;color:var(--accent);border:1px solid var(--line);box-shadow:none;}
+  button.sec:hover{background:#f1f6ff;border-color:#c6d4ea;box-shadow:none;}
+  button.goldbtn{background:linear-gradient(180deg,#d9a521,#b8860b);}
+  button.goldbtn:hover{background:linear-gradient(180deg,#c8951a,#a4780a);}
+  .row{display:flex;gap:10px;}.row>*{flex:1;}
+  .hidden{display:none !important;}
+  .muted{font-size:11.5px;color:var(--sub);line-height:1.55;}
+
+  /* ===== HUD (게임 중 상단 상태바) ===== */
+  .hud{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+       border-radius:999px;padding:8px 16px;box-shadow:var(--shadow);font-size:13px;flex-wrap:wrap;justify-content:center;}
+  .hud .team{font-weight:700;}
+  .hud .timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);}
+  .hud .items{font-size:16px;}
+  .hud .sep{color:#c0c6cf;}
+
+  /* ===== 역할 카드 ===== */
+  .roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media (max-width:430px){.roles{grid-template-columns:1fr;}}
+  .rolecard{background:#fafbfd;border:1px solid var(--line);border-radius:12px;padding:12px;}
+  .rolecard .re{font-size:24px;}
+  .rolecard .rn{font-size:14px;font-weight:700;margin-top:4px;}
+  .rolecard .rn small{font-weight:400;color:var(--sub);font-size:11px;}
+  .rolecard .rd{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .rolecard .rp{margin-top:8px;font-size:13px;font-weight:700;color:var(--accent);
+                background:#e8f0fe;border-radius:999px;padding:4px 10px;display:inline-block;}
+
+  /* ===== 패스앤플레이(기기 넘기기) 카드 ===== */
+  .pass{background:linear-gradient(180deg,#f4f8ff,#eaf1fd);border:1px solid #d2e3fc;border-radius:16px;
+        padding:22px 18px;text-align:center;}
+  .pass .big{font-size:38px;}
+  .pass .who{font-size:17px;font-weight:800;margin-top:8px;}
+  .pass .who .nm{color:var(--accent);}
+  .pass .inst{font-size:13px;color:var(--sub);margin-top:6px;line-height:1.6;}
+  .clue{background:#fffdf3;border:1px solid var(--gold-line);border-left:4px solid var(--gold);
+        border-radius:12px;padding:16px;margin-top:14px;text-align:left;}
+  .clue .ch{font-size:10.5px;color:var(--gold);font-weight:800;letter-spacing:1px;margin-bottom:8px;}
+  .clue .ct{font-size:15px;line-height:1.7;}
+  .clue .ct b{color:var(--accent-d);}
+  .secret{font-size:12px;color:#b06000;background:#fef7e0;border:1px solid #fde293;border-radius:10px;
+          padding:9px 12px;margin-top:12px;line-height:1.55;}
+  .prog{display:flex;justify-content:center;gap:6px;margin-top:14px;}
+  .prog .p{width:10px;height:10px;border-radius:50%;background:#dbe3ee;}
+  .prog .p.done{background:var(--accent2);}
+  .prog .p.now{background:var(--accent);box-shadow:0 0 0 3px rgba(26,115,232,.2);}
+
+  /* ===== 정답 입력 ===== */
+  .answerbox{margin-top:14px;text-align:left;}
+  .wrongmsg{background:#fce8e6;border:1px solid #f6c9c5;border-left:3px solid #d93025;border-radius:10px;
+            padding:10px 13px;font-size:13px;color:#a50e0e;line-height:1.55;margin-top:10px;animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .okmsg{background:#e6f4ea;border:1px solid #ceead6;border-left:3px solid var(--accent2);border-radius:10px;
+         padding:10px 13px;font-size:13px;color:#137333;line-height:1.55;margin-top:10px;}
+
+  /* ===== 성공 축하 ===== */
+  .celebrate{text-align:center;padding:8px 0;}
+  .celebrate .word{font-size:30px;font-weight:800;color:var(--accent2);letter-spacing:2px;animation:pop .5s;}
+  @keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  .itemwin{margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold-line);border-radius:12px;
+           padding:14px;font-size:14px;color:#6b5310;line-height:1.6;animation:pop .6s;}
+  .itemwin .ie{font-size:34px;display:block;margin-bottom:4px;}
+
+  /* ===== 성문 선택 ===== */
+  .gates{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px;}
+  @media (max-width:480px){.gates{grid-template-columns:repeat(5,1fr);gap:5px;}}
+  .gate{background:#eceff4;border:1px solid var(--line);border-radius:12px;padding:12px 4px;text-align:center;
+        cursor:pointer;transition:box-shadow .15s,border-color .15s,background .15s;}
+  .gate:hover{box-shadow:var(--shadow-h);border-color:#c6d4ea;}
+  .gate.revealed{background:#fffdf3;border-color:var(--gold-line);}
+  .gate.picked{background:#e6f4ea;border-color:#ceead6;box-shadow:0 0 0 3px rgba(30,142,62,.15);}
+  .gate .ge{font-size:26px;}
+  .gate .gn{font-size:12px;font-weight:700;margin-top:4px;}
+  .gate .gl{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.4;min-height:30px;}
+  .gate .gl b{color:var(--gold);}
+  .fogNote{font-size:12.5px;color:var(--sub);background:#eef1f5;border:1px dashed #c9d1dc;border-radius:10px;
+           padding:10px 12px;margin-top:12px;line-height:1.6;text-align:center;}
+  .scoutinfo{background:#fffdf3;border:1px solid var(--gold-line);border-radius:12px;padding:13px;
+             font-size:13.5px;line-height:1.7;margin-top:12px;}
+  .penalty{background:#fce8e6;border:1px solid #f6c9c5;border-radius:12px;padding:12px 14px;font-size:13px;
+           color:#a50e0e;line-height:1.6;margin-top:12px;animation:shake .35s;}
+
+  /* ===== 자물쇠 진행 ===== */
+  .locks{display:flex;justify-content:center;gap:14px;font-size:30px;margin:6px 0 2px;}
+  .locks .lk{transition:transform .3s;}
+  .locks .lk.open{animation:pop .5s;}
+
+  /* ===== 성문 개방 연출 ===== */
+  .opening{text-align:center;padding:14px 0;}
+  .opening .castle{font-size:64px;animation:rise 1s ease-out;}
+  @keyframes rise{0%{transform:translateY(24px);opacity:0}100%{transform:translateY(0);opacity:1}}
+  .opening .doors{font-size:34px;letter-spacing:6px;animation:doorOpen 1.2s ease-out .3s both;}
+  @keyframes doorOpen{0%{letter-spacing:0;opacity:.4}100%{letter-spacing:14px;opacity:1}}
+  .opening h2{font-size:22px;font-weight:800;color:var(--accent2);margin-top:10px;animation:pop .6s .8s both;}
+  .sparkles{font-size:20px;margin-top:6px;animation:pop .6s 1s both;}
+
+  /* ===== 왕좌의 방 (왕좌의 칼) ===== */
+  .passage{background:#fffdf3;border:1px solid var(--gold-line);border-radius:12px;padding:14px 16px;
+           font-size:14.5px;line-height:1.9;text-align:left;margin-top:12px;}
+  .passage b{color:var(--gold);}
+  .blankgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px;text-align:left;}
+  @media (max-width:430px){.blankgrid{grid-template-columns:1fr;}}
+  .blankgrid input.bad{border-color:#d93025;box-shadow:0 0 0 3px rgba(217,48,37,.15);background:#fff8f7;}
+  .blankgrid input.ok{border-color:var(--accent2);background:#f2faf4;}
+
+  /* ===== 승리/순위표 ===== */
+  .victory{background:linear-gradient(180deg,#fdf6e3,#fff);border:1px solid var(--gold-line);}
+  .vhead{text-align:center;}
+  .vhead .crown{font-size:44px;}
+  .vhead h2{font-size:21px;font-weight:800;color:var(--gold);margin-top:4px;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
+  .stat .k{font-size:11px;color:var(--sub);}
+  .stat .v{font-size:17px;font-weight:800;margin-top:3px;}
+  .stat .v.small{font-size:14px;}
+  table.board{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+  table.board th{font-size:11px;color:var(--sub);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-weight:600;}
+  table.board td{padding:8px;border-bottom:1px solid #eef1f5;}
+  table.board tr.me td{background:#e8f0fe;font-weight:700;}
+  table.board td.rank{font-weight:800;width:36px;}
+  .foot{font-size:12px;color:var(--sub);text-align:center;padding-bottom:10px;}
+  .foot a{color:var(--accent);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ===== 머리글 ===== -->
+  <header class="hero">
+    <div class="logo">🏰</div>
+    <h1>Vocabulary Castle League
+      <small>학교대항 어휘성 공략전 · 1차 MVP (시제품)</small>
+    </h1>
+    <div class="slogan">«혼자서는 단어를 볼 수 있지만, <b>함께해야 성을 열 수 있다</b>.»<br>
+      <span style="font-size:11.5px;">Share the clue. Build the word. Open the castle.</span></div>
+    <p class="concept">4명이 <b>서로 다른 단서</b>를 하나씩 나눠 갖는 <b>정보차(Information-Gap)</b> 협동 게임 ·
+      한 기기를 돌려 보며 플레이해요 📱</p>
+  </header>
+
+  <!-- ===== HUD: 게임 중 상태바 ===== -->
+  <div id="hud" class="hud hidden">
+    <span class="team" id="hudTeam">팀</span>
+    <span class="sep">·</span>
+    <span>⏱ <span class="timer" id="hudTimer">00:00</span></span>
+    <span class="sep">·</span>
+    <span class="items" id="hudItems" title="획득한 아이템">🎒 —</span>
+  </div>
+
+  <!-- 동적 화면이 렌더링되는 무대 -->
+  <div id="stage"></div>
+
+  <div class="foot">기록은 <b>이 기기(브라우저)</b>의 순위표에만 저장돼요 · 서버 전송 없음</div>
+</div>
+
+<script>
+'use strict';
+/* =========================================================================
+   Vocabulary Castle League — 학교대항 어휘성 공략전 (1차 MVP)
+   - 단일 기기 "핫시트(pass-and-play)" 방식: 기기를 돌려 보며 각자 자기 단서만 확인
+   - 화면 상태 머신: entry → briefing → puzzle(binoculars) → gates → locks
+                     → gateOpen → throne(왕좌의 칼) → victory
+   ========================================================================= */
+
+/* ---------- 상수: 역할 정의 ---------- */
+const ROLES = [
+  { emoji:'🔭', kr:'정찰자',        en:'Scout',           desc:'문/길 정보, 망원경 사용' },
+  { emoji:'📖', kr:'어휘 수호자',   en:'Lexicon Keeper',  desc:'뜻/정의' },
+  { emoji:'✍️', kr:'기록자',        en:'Scribe',          desc:'첫 글자·글자 수, 최종 정답 입력' },
+  { emoji:'🎒', kr:'아이템 관리자', en:'Artifact Holder', desc:'철자 조각·아이템' },
+];
+const R_SCOUT=0, R_KEEPER=1, R_SCRIBE=2, R_HOLDER=3;
+
+/* 단서 확인(패스) 순서 — 기록자가 마지막(정답 입력 담당이므로 기기가 그에게서 끝남) */
+const PASS_ORDER = [R_KEEPER, R_SCOUT, R_HOLDER, R_SCRIBE];
+
+/* ---------- 상수: 문제 데이터 ---------- */
+/* 각 퍼즐: answer, ko(뜻), clues[역할index] = HTML 단서 */
+const PUZZLE_BINOCULARS = {
+  answer:'binoculars', ko:'망원경 / 쌍안경',
+  clues:{
+    [R_KEEPER]: '뜻(정의): <b>"멀리 있는 물체를 두 눈으로 확대해 보는 도구"</b>',
+    [R_SCRIBE]: '첫 글자: <b>b</b> · 글자 수: <b>10</b>',
+    [R_SCOUT]:  '예문: <b>"The guard used the ______ to watch the distant gate."</b>',
+    [R_HOLDER]: '철자 조각: <b>bin + ocular + s</b><br><span style="font-size:12px;color:var(--sub);">(ocular = 눈과 관련된)</span>',
+  },
+};
+const PUZZLE_OBSTACLE = {
+  answer:'obstacle', ko:'장애물',
+  clues:{
+    [R_KEEPER]: '뜻(정의): <b>"길을 가로막아 나아가지 못하게 하는 것 — 장애물"</b>',
+    [R_SCRIBE]: '첫 글자: <b>o</b> · 글자 수: <b>8</b>',
+    [R_SCOUT]:  '예문: <b>"A huge rock was an ______ on the road to the castle."</b>',
+    [R_HOLDER]: '어원 조각: <b>ob(맞서) + sta(서다) + cle</b><br><span style="font-size:12px;color:var(--sub);">(길 앞에 "맞서 서 있는" 것!)</span>',
+  },
+};
+const PUZZLE_APPROACH = {
+  answer:'approach', ko:'접근하다',
+  clues:{
+    [R_KEEPER]: '뜻(정의): <b>"가까이 다가가다, 접근하다"</b>',
+    [R_SCRIBE]: '첫 글자: <b>a</b> · 글자 수: <b>8</b>',
+    [R_SCOUT]:  '예문: <b>"Be quiet as we ______ the castle gate at night."</b>',
+    [R_HOLDER]: '어원 조각: <b>ap(~쪽으로) + proach(가까이)</b><br><span style="font-size:12px;color:var(--sub);">(proach는 라틴어 prope = "가까운"에서!)</span>',
+  },
+};
+
+/* ---------- 상수: 왕좌의 칼 — 수능형 지문 협력 복원 (Phase 2 클라이맥스) ---------- */
+/* parts[i] 뒤에 blanks[i]가 끼어드는 구조 (parts 7개 + blanks 6개) */
+const THRONE = {
+  parts: [
+    'A difficult problem is not always an ', ' to learning. Students may ',
+    ' deeper knowledge when they try to ', ' incomplete information. They must compare ',
+    ', listen to different ', ', and decide which details are ', '.',
+  ],
+  blanks: [
+    { no:'①', answer:'obstacle',     accept:['obstacle'],                   ko:'장애물' },
+    { no:'②', answer:'acquire',      accept:['acquire'],                    ko:'획득하다·얻다' },
+    { no:'③', answer:'interpret',    accept:['interpret'],                  ko:'이해하고 해석하다' },
+    { no:'④', answer:'evidence',     accept:['evidence'],                   ko:'증거' },
+    { no:'⑤', answer:'perspectives', accept:['perspectives','perspective'], ko:'관점' },
+    { no:'⑥', answer:'significant',  accept:['significant'],                ko:'중요한·의미 있는' },
+  ],
+  clues:{
+    [R_KEEPER]: `핵심 어휘 의미:<br>
+      · 빈칸 ① : 뜻 <b>'장애물'</b> (첫 글자 <b>o</b>, <b>8글자</b>)<br>
+      · 빈칸 ② : 뜻 <b>'(지식·기술을) 획득하다·얻다'</b> (첫 글자 <b>a</b>)`,
+    [R_SCOUT]: `첫 문장 & 중심 생각 & 논리 흐름:<br>
+      · 지문의 중심 생각: <b>"어려운 문제가 늘 학습의 [①]인 것은 아니다 — 오히려 배움의 기회다"</b><br>
+      · 빈칸 ⑤ : '서로 다른 <b>[관점]</b>들을 듣는다' (첫 글자 <b>p</b>, 보통 <b>복수형</b>)`,
+    [R_HOLDER]: `어원 & 근거:<br>
+      · 빈칸 ③ : '불완전한 정보를 [&nbsp;&nbsp;&nbsp;]하려 할 때' — <b>inter-</b> 로 시작<br>
+      <span style="font-size:12px;color:var(--sub);">(inter=사이, pret=풀이하다 → "사이를 풀이하다 = 해석하다")</span><br>
+      · 빈칸 ④ : '[&nbsp;&nbsp;&nbsp;]를 비교한다' — 뜻 <b>'증거'</b> (<b>evi-</b> 로 시작)`,
+    [R_SCRIBE]: `마지막 문장 & 결론:<br>
+      · 빈칸 ⑥ : "어떤 세부사항이 [&nbsp;&nbsp;&nbsp;]한지 결정한다" — 뜻 <b>'중요한·의미 있는'</b>
+      (첫 글자 <b>s</b>, 안에 <b>sign</b> 이 보임)<br>
+      <span style="font-size:12px;color:var(--sub);">(그리고 여섯 빈칸의 최종 입력도 기록자의 몫!)</span>`,
+  },
+};
+/* 지문을 ______①~⑥ 표기로 렌더링 */
+function thronePassageHtml(){
+  return '<div class="passage">📜 ' + THRONE.parts.map((t,i)=>
+    t + (i < THRONE.blanks.length ? '<b>______' + THRONE.blanks[i].no + '</b>' : '')
+  ).join('') + '</div>';
+}
+
+/* ---------- 상수: 성문 데이터 ---------- */
+const GATES = [
+  { no:1, locks:5, diff:'매우 어려움' },
+  { no:2, locks:4, diff:'어려움' },
+  { no:3, locks:2, diff:'보통' },        // 최적의 선택
+  { no:4, locks:6, diff:'매우 어려움' },
+  { no:5, locks:3, diff:'조금 어려움' },
+];
+const WRONG_GATE_PENALTY = 20;  // 잘못된 문 선택 시 시간 페널티(초)
+const LB_KEY = 'vcl_leaderboard';
+
+/* ---------- 게임 상태 ---------- */
+const game = {
+  school:'', code:'', team:'', players:[],
+  round:1,            // 1: binoculars 라운드, 2: 자물쇠 라운드(역할 순환)
+  startTime:null,     // 타이머 시작(binoculars 퍼즐 시작 시점)
+  penalty:0,          // 누적 페널티(초)
+  attempts:0, correct:0,
+  telescopeUsed:false,
+  hintCount:0,        // "단서 다시 돌려보기" 사용 횟수
+  items:[],           // 획득 아이템 이모지
+  finalTime:0,        // 완주 시 확정된 소요 시간(초)
+};
+
+/* 역할 → 플레이어 배정. round 1: 역할r → 플레이어r / round 2: 한 칸 순환 */
+function playerForRole(roleIdx){
+  const shift = (game.round === 1) ? 0 : 1;
+  return game.players[(roleIdx + shift) % 4];
+}
+
+/* ---------- 유틸 ---------- */
+const $ = (id)=>document.getElementById(id);
+const stage = document.getElementById('stage');
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(sec){
+  sec = Math.max(0, Math.floor(sec));
+  return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+}
+function elapsedSec(){
+  if(!game.startTime) return 0;
+  return (Date.now() - game.startTime)/1000 + game.penalty;
+}
+
+/* ---------- HUD 타이머 ---------- */
+let hudInterval = null;
+function startHud(){
+  $('hud').classList.remove('hidden');
+  $('hudTeam').textContent = '🛡 ' + game.team;
+  updateHudItems();
+  if(hudInterval) clearInterval(hudInterval);
+  hudInterval = setInterval(()=>{ $('hudTimer').textContent = fmtTime(elapsedSec()); }, 500);
+}
+function stopHud(){ if(hudInterval){ clearInterval(hudInterval); hudInterval = null; } }
+function updateHudItems(){
+  $('hudItems').textContent = '🎒 ' + (game.items.length ? game.items.join(' ') : '—');
+}
+
+/* =========================================================================
+   화면 상태 머신 (screen router)
+   ========================================================================= */
+const SCREENS = {};             // name → render function
+function go(name, arg){
+  stage.innerHTML = '';
+  SCREENS[name](arg);
+  stage.scrollIntoView({behavior:'smooth', block:'nearest'});
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* =========================================================================
+   화면 1 — 학교 입장 (entry)
+   ========================================================================= */
+SCREENS.entry = function(){
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="ptitle">🏫 학교 입장 — 원정대 등록</div>
+      <div class="pdesc">4명이 한 팀! 학교와 팀 이름, 그리고 네 명의 게임 이름을 정해 주세요.
+        (비워 두면 연습용 기본값으로 시작할 수 있어요)</div>
+      <div class="two">
+        <div class="field"><label>학교명</label>
+          <input id="inSchool" placeholder="예: 한빛중학교" autocomplete="off"></div>
+        <div class="field"><label>참가코드</label>
+          <input id="inCode" placeholder="예: HB2026" autocomplete="off"></div>
+      </div>
+      <div class="field"><label>팀명</label>
+        <input id="inTeam" placeholder="예: Snowball Knights" autocomplete="off"></div>
+      <div class="two">
+        <div class="field"><label>플레이어 1 게임 이름</label><input id="inP0" placeholder="예: WordMaster7" autocomplete="off"></div>
+        <div class="field"><label>플레이어 2 게임 이름</label><input id="inP1" placeholder="예: LexiKnight" autocomplete="off"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label>플레이어 3 게임 이름</label><input id="inP2" placeholder="예: SpellRanger" autocomplete="off"></div>
+        <div class="field"><label>플레이어 4 게임 이름</label><input id="inP3" placeholder="예: CastleSeeker" autocomplete="off"></div>
+      </div>
+      <div id="entryWarn"></div>
+      <button id="btnStart" style="margin-top:6px;">⚔️ 원정대 집결! (시작)</button>
+      <div class="muted" style="margin-top:9px;">💡 이 시제품은 <b>한 기기를 돌려 보는(패스앤플레이)</b> 방식이에요.
+        자기 차례에만 자기 단서를 확인하고, 다른 사람에게는 <b>말로만</b> 전달해요 — 그게 정보차 학습의 핵심!</div>
+    </div>`;
+  $('btnStart').addEventListener('click', ()=>{
+    // 가벼운 검증 + 비어 있으면 연습용 기본값
+    const school = $('inSchool').value.trim() || '한빛중학교';
+    const code   = $('inCode').value.trim()   || 'HB2026';
+    const team   = $('inTeam').value.trim()   || 'Snowball Knights';
+    const defs   = ['WordMaster7','LexiKnight','SpellRanger','CastleSeeker'];
+    const players = [0,1,2,3].map(i => $('inP'+i).value.trim() || defs[i]);
+    // 중복 이름만 부드럽게 안내
+    if(new Set(players.map(p=>p.toLowerCase())).size < 4){
+      $('entryWarn').innerHTML = '<div class="wrongmsg">게임 이름이 서로 겹치지 않게 해 주세요! 누구 차례인지 헷갈릴 수 있어요 😅</div>';
+      return;
+    }
+    Object.assign(game, { school, code, team, players });
+    go('briefing');
+  });
+};
+
+/* =========================================================================
+   화면 1.5 — 원정대 집결 브리핑 (역할 배정 안내)
+   ========================================================================= */
+function rolesHtml(){
+  return '<div class="roles">' + ROLES.map((r,i)=>`
+    <div class="rolecard">
+      <div class="re">${r.emoji}</div>
+      <div class="rn">${r.kr} <small>(${r.en})</small></div>
+      <div class="rd">${r.desc}</div>
+      <div class="rp">👤 ${esc(playerForRole(i))}</div>
+    </div>`).join('') + '</div>';
+}
+SCREENS.briefing = function(){
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="ptitle">⚔️ 원정대 집결 — ${esc(game.team)}</div>
+      <div class="pdesc">${esc(game.school)} · 참가코드 <b>${esc(game.code)}</b><br>
+        이번 라운드의 역할이에요. <b>역할은 매 라운드 바뀝니다</b> — 모두가 모든 역할을 경험해요! 🔄</div>
+      ${rolesHtml()}
+      <div class="secret" style="text-align:left;">📱 <b>플레이 방법:</b> 화면이 "OO에게 기기를 넘겨주세요"라고 하면 그 사람에게 기기를 건네요.
+        자기 단서를 <b>혼자만</b> 확인한 뒤 숨기고, 팀원들에게는 <b>말로 설명</b>해요. 단서를 합치면 답이 보여요!</div>
+      <button id="btnBrief" style="margin-top:14px;" class="alt">🌫 안개 속 어휘성으로 출발! (타이머 시작)</button>
+    </div>`;
+  $('btnBrief').addEventListener('click', ()=>{
+    game.startTime = Date.now();     // ⏱ 소요 시간은 여기(퍼즐 시작)부터 측정
+    startHud();
+    go('puzzle', {
+      puzzle: PUZZLE_BINOCULARS,
+      title: '🌫 안개 낀 성 앞 — 정보차 문제 #1',
+      desc: '성으로 가려면 먼저 <b>정찰 도구</b>가 필요해요. 네 개의 단서를 합쳐 이 단어를 찾아내면 아이템을 얻습니다!',
+      onSolved: ()=> showTelescopeReward(),
+    });
+  });
+};
+
+/* =========================================================================
+   공용 — 정보차 퍼즐 (패스앤플레이)
+   opts: { puzzle, title, desc, onSolved, lockLabel? }
+   ========================================================================= */
+SCREENS.puzzle = function(opts){
+  const p = opts.puzzle;
+  let step = 0;             // PASS_ORDER 인덱스 (0..3), 4 = 정답 입력 단계
+  let revealed = false;     // 현재 사람이 단서를 펼쳐 봤는지
+
+  function progHtml(){
+    return '<div class="prog">' + PASS_ORDER.map((_,i)=>{
+      const cls = i < step ? 'done' : (i === step ? 'now' : '');
+      return `<div class="p ${cls}"></div>`;
+    }).join('') + '</div>';
+  }
+
+  function render(){
+    if(step < 4){
+      const roleIdx = PASS_ORDER[step];
+      const role = ROLES[roleIdx];
+      const player = playerForRole(roleIdx);
+      stage.innerHTML = `
+        <div class="panel">
+          <div class="ptitle">${opts.title}</div>
+          <div class="pdesc">${opts.desc}</div>
+          ${opts.lockLabel || ''}
+          <div class="pass">
+            <div class="big">📱</div>
+            <div class="who">${role.emoji} <span class="nm">${role.kr} ${esc(player)}</span>에게<br>기기를 넘겨주세요</div>
+            <div class="inst">${esc(player)} 님, 준비되면 아래 버튼으로 <b>혼자만</b> 단서를 확인하세요.<br>다른 팀원은 잠시 화면을 보지 않아요 🙈</div>
+            <div id="clueArea"></div>
+            ${progHtml()}
+          </div>
+        </div>`;
+      renderClueArea(roleIdx, role, player);
+    } else {
+      renderAnswer();
+    }
+  }
+
+  function renderClueArea(roleIdx, role, player){
+    const area = $('clueArea');
+    if(!revealed){
+      area.innerHTML = `<button id="btnReveal" style="margin-top:14px;">👁 내 단서 확인하기 (${role.kr}만!)</button>`;
+      $('btnReveal').addEventListener('click', ()=>{ revealed = true; renderClueArea(roleIdx, role, player); });
+    } else {
+      area.innerHTML = `
+        <div class="clue">
+          <div class="ch">${role.emoji} ${role.kr}의 비밀 단서</div>
+          <div class="ct">${p.clues[roleIdx]}</div>
+        </div>
+        <div class="secret">🤫 이 단서는 화면을 숨긴 뒤 팀원들에게 <b>말로만</b> 전달하세요!</div>
+        <button id="btnHide" class="alt" style="margin-top:12px;">🙈 단서 숨기고 다음 사람에게 →</button>`;
+      $('btnHide').addEventListener('click', ()=>{ revealed = false; step++; render(); });
+    }
+  }
+
+  function renderAnswer(msgHtml){
+    const scribe = playerForRole(R_SCRIBE);
+    stage.innerHTML = `
+      <div class="panel">
+        <div class="ptitle">${opts.title}</div>
+        <div class="pdesc">모든 단서가 공유됐어요! 이제 팀이 <b>말로 의논</b>해서 답을 정하세요.</div>
+        ${opts.lockLabel || ''}
+        <div class="pass">
+          <div class="big">✍️</div>
+          <div class="who">기록자 <span class="nm">${esc(scribe)}</span>만<br>정답을 입력할 수 있어요</div>
+          <div class="inst">팀이 합의한 단어를 기록자가 입력합니다. (대소문자는 상관없어요)</div>
+          <div class="answerbox">
+            <label>정답 단어 (영어)</label>
+            <input id="inAnswer" placeholder="팀이 합의한 단어를 입력…" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button id="btnSubmit" style="margin-top:10px;">🗝 정답 제출 (기록자 ${esc(scribe)})</button>
+            <button id="btnReview" class="sec" style="margin-top:8px;">🔄 단서 다시 돌려보기 (힌트 사용으로 기록돼요)</button>
+          </div>
+          <div id="answerMsg">${msgHtml || ''}</div>
+        </div>
+      </div>`;
+    const input = $('inAnswer');
+    input.focus();
+    function submit(){
+      const val = input.value.trim().toLowerCase();
+      if(!val){ input.focus(); return; }
+      game.attempts++;
+      if(val === p.answer){
+        game.correct++;
+        opts.onSolved();
+      } else {
+        $('answerMsg').innerHTML = `<div class="wrongmsg">🚪 <b>${esc(input.value.trim())}</b> — 성문이 꿈쩍도 하지 않아요!
+          단서를 다시 맞춰 보세요. 첫 글자와 글자 수를 확인했나요?</div>`;
+        input.value = ''; input.focus();
+      }
+    }
+    $('btnSubmit').addEventListener('click', submit);
+    input.addEventListener('keydown', e=>{ if(e.key === 'Enter') submit(); });
+    $('btnReview').addEventListener('click', ()=>{
+      game.hintCount++;         // 다시 돌려보기 = 힌트 사용으로 집계
+      step = 0; revealed = false; render();
+    });
+  }
+
+  render();
+};
+
+/* =========================================================================
+   화면 2.5 — binoculars 정답 → 망원경 획득 연출
+   ========================================================================= */
+function showTelescopeReward(){
+  game.items.push('🔭');
+  updateHudItems();
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="celebrate">
+        <div style="font-size:34px;">🎉✨🎊</div>
+        <div class="word">BINOCULARS</div>
+        <div class="muted" style="margin-top:4px;">bin + ocular + s — "두 눈으로 보는 도구" (망원경/쌍안경)</div>
+        <div class="okmsg" style="text-align:left;">단서 네 조각이 하나로! 뜻·첫 글자·예문·어원이 만나면 단어가 열려요. 훌륭한 협동이었어요 👏</div>
+        <div class="itemwin">
+          <span class="ie">🔭</span>
+          <b>아이템 획득: 망원경 (Telescope)</b><br>
+          정찰자가 안개 속 성문을 살펴볼 수 있게 됐어요!
+        </div>
+        <button id="btnToGates" class="goldbtn" style="margin-top:14px;">🏰 성문 앞으로 이동 →</button>
+      </div>
+    </div>`;
+  $('btnToGates').addEventListener('click', ()=> go('gates'));
+}
+
+/* =========================================================================
+   화면 3 — 성문 선택 (망원경 정찰)
+   ========================================================================= */
+SCREENS.gates = function(){
+  const scout = playerForRole(R_SCOUT);
+  let scouted = game.telescopeUsed;   // 망원경 사용 여부(이 화면 내)
+  let penaltyMsg = '';
+
+  function gateCard(g){
+    // 망원경 사용 후: 3번·5번 문만 자물쇠 개수 공개, 나머지는 계속 안개
+    let info;
+    if(scouted && g.no === 3)      info = '<b>🔒 자물쇠 2개</b><br>보통';
+    else if(scouted && g.no === 5) info = '<b>🔒 자물쇠 3개</b><br>조금 어려움';
+    else if(scouted)               info = '🌫 안개로<br>잘 안 보임';
+    else                           info = '❓<br>안개…';
+    const cls = (scouted && (g.no === 3 || g.no === 5)) ? 'revealed' : '';
+    return `<div class="gate ${cls}" data-no="${g.no}">
+      <div class="ge">🚪</div><div class="gn">${g.no}번 문</div><div class="gl">${info}</div>
+    </div>`;
+  }
+
+  function render(){
+    stage.innerHTML = `
+      <div class="panel">
+        <div class="ptitle">🏰 성문 선택 — 다섯 개의 문</div>
+        <div class="pdesc">안개 속에 성문 다섯 개가 서 있어요. 문마다 <b>어휘 자물쇠</b> 개수가 달라요.
+          자물쇠가 적은 문을 고르는 게 전략!</div>
+        <div class="gates">${GATES.map(gateCard).join('')}</div>
+        ${ scouted
+          ? `<div class="scoutinfo">🔭 <b>정찰자 ${esc(scout)}의 보고:</b><br>
+               "3번 문은 자물쇠 <b>2개</b>, 5번 문은 자물쇠 <b>3개</b>! 나머지 문은 안개가 짙어 잘 안 보여…"<br>
+               <span class="muted">팀이 의논해서 문을 골라 누르세요. 👆</span></div>`
+          : `<div class="fogNote">🌫 아직 아무것도 보이지 않아요…<br>
+               <b>🔭 정찰자 ${esc(scout)}</b>만 망원경을 쓸 수 있어요. 기기를 정찰자에게 넘겨주세요! 📱</div>
+             <button id="btnScope" class="goldbtn" style="margin-top:12px;">🔭 망원경으로 살펴보기 (정찰자 ${esc(scout)})</button>` }
+        ${penaltyMsg}
+      </div>`;
+    if(!scouted){
+      $('btnScope').addEventListener('click', ()=>{
+        scouted = true; game.telescopeUsed = true; penaltyMsg = ''; render();
+      });
+    }
+    // 문 클릭 처리 (정찰 전에도 누를 수는 있지만, 잘못 고르면 비용이 큼)
+    stage.querySelectorAll('.gate').forEach(el=>{
+      el.addEventListener('click', ()=> pick(parseInt(el.dataset.no, 10), el));
+    });
+  }
+
+  function pick(no, el){
+    const g = GATES[no-1];
+    if(no === 3){
+      // 최적의 선택! → 자물쇠 화면으로
+      el.classList.add('picked');
+      setTimeout(()=> go('locksIntro'), 350);
+    } else {
+      // 잘못된 선택: 자물쇠 개수 공개 + 시간 페널티 후 다시 선택
+      game.penalty += WRONG_GATE_PENALTY;
+      penaltyMsg = `<div class="penalty">😱 ${no}번 문 앞에 서 보니… 자물쇠가 <b>${g.locks}개</b>(${g.diff})!
+        너무 많아서 물러났어요.<br>⏱ <b>시간 페널티 +${WRONG_GATE_PENALTY}초</b> — 정찰 정보를 참고해 다시 고르세요.</div>`;
+      render();
+    }
+  }
+
+  render();
+};
+
+/* =========================================================================
+   화면 4 — 3번 문 자물쇠 (역할 순환 + 정보차 퍼즐 ×2)
+   ========================================================================= */
+SCREENS.locksIntro = function(){
+  game.round = 2;   // 🔄 역할 순환: 두 번째 라운드 배정으로 전환
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="ptitle">🚪 3번 문 도착 — 어휘 자물쇠 2개</div>
+      <div class="pdesc">좋은 선택이에요! 이제 자물쇠 두 개를 어휘의 힘으로 풀면 성문이 열려요.</div>
+      <div class="locks"><span class="lk">🔒</span><span class="lk">🔒</span></div>
+      <div class="okmsg">🔄 <b>역할 교대!</b> 약속대로 라운드가 바뀌어 역할이 한 칸씩 순환했어요. 새 역할을 확인하세요.</div>
+      ${rolesHtml()}
+      <button id="btnLock1" class="alt" style="margin-top:14px;">🔒 첫 번째 자물쇠 도전 →</button>
+    </div>`;
+  $('btnLock1').addEventListener('click', ()=>{
+    go('puzzle', {
+      puzzle: PUZZLE_OBSTACLE,
+      title: '🔒 첫 번째 자물쇠 — 정보차 문제 #2',
+      desc: '네 단서를 합쳐 자물쇠에 새겨진 단어를 찾아요.',
+      lockLabel: `<div class="locks"><span class="lk">🔒</span><span class="lk" style="opacity:.35;">🔒</span></div>`,
+      onSolved: ()=> lockSolved(1),
+    });
+  });
+};
+
+function lockSolved(which){
+  if(which === 1){
+    stage.innerHTML = `
+      <div class="panel">
+        <div class="celebrate">
+          <div style="font-size:30px;">🔓✨</div>
+          <div class="word">OBSTACLE</div>
+          <div class="muted" style="margin-top:4px;">ob(맞서)+sta(서다)+cle — 길을 막고 "맞서 서 있는" 장애물</div>
+          <div class="locks"><span class="lk open">🔓</span><span class="lk">🔒</span></div>
+          <div class="okmsg">첫 번째 자물쇠 해제! 장애물(obstacle)을 넘었으니, 이제 성문에 다가갈(approach) 차례.</div>
+          <button id="btnLock2" class="alt" style="margin-top:12px;">🔒 두 번째 자물쇠 도전 →</button>
+        </div>
+      </div>`;
+    $('btnLock2').addEventListener('click', ()=>{
+      go('puzzle', {
+        puzzle: PUZZLE_APPROACH,
+        title: '🔒 두 번째 자물쇠 — 정보차 문제 #3',
+        desc: '마지막 자물쇠! 이번에도 단서를 합쳐 봐요.',
+        lockLabel: `<div class="locks"><span class="lk open">🔓</span><span class="lk">🔒</span></div>`,
+        onSolved: ()=> lockSolved(2),
+      });
+    });
+  } else {
+    // 두 번째 자물쇠까지 해제 → 성문 개방 연출
+    go('gateOpen');
+  }
+}
+
+/* ---------- 성문 개방 연출 ---------- */
+SCREENS.gateOpen = function(){
+  // ⏱ 타이머는 아직 멈추지 않아요 — 왕좌의 방(왕좌의 칼)까지가 도전!
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="opening">
+        <div class="castle">🏰</div>
+        <div class="doors">🚪 🚪</div>
+        <h2>⚜️ 성문 개방! ⚜️</h2>
+        <div class="sparkles">✨🎺✨🎺✨</div>
+        <div class="okmsg" style="text-align:left;">두 자물쇠가 모두 풀리며 육중한 성문이 열립니다…
+          ${esc(game.team)} 원정대가 어휘성에 입성했어요!<br>
+          하지만 아직 끝이 아니에요 — 성 깊은 곳, <b>왕좌의 방</b>이 기다립니다. ⚔️</div>
+        <button id="btnThroneIntro" class="goldbtn" style="margin-top:14px;">👑 왕좌의 방으로 →</button>
+      </div>
+    </div>`;
+  $('btnThroneIntro').addEventListener('click', ()=> go('throneIntro'));
+};
+
+/* =========================================================================
+   화면 4.5 — 왕좌의 방 브리핑 (왕좌의 칼 · 수능형 지문 협력 복원)
+   ========================================================================= */
+SCREENS.throneIntro = function(){
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="opening" style="padding:6px 0 2px;">
+        <div class="castle">⚔️👑</div>
+        <h2 style="color:var(--gold);">왕좌의 방 — 왕좌의 칼</h2>
+        <div class="sparkles">✨🗡✨</div>
+      </div>
+      <div class="pdesc" style="margin-top:8px;">왕좌에 <b>전설의 칼</b>이 꽂혀 있어요.
+        칼을 뽑으려면 왕좌에 새겨진 <b>수능형 영어 지문</b>을 팀이 함께 복원해야 합니다.<br>
+        지문에는 빈칸이 <b>6개(①~⑥)</b> — 이번에도 각자 <b>지문의 서로 다른 일부 정보만</b> 볼 수 있어요.
+        네 사람의 단서를 모두 합쳐야 완성됩니다!</div>
+      ${thronePassageHtml()}
+      <div class="pdesc" style="margin:12px 0 8px;">현재 역할 배정 (자물쇠 라운드와 동일):</div>
+      ${rolesHtml()}
+      <div class="secret" style="text-align:left;">📱 지금까지처럼 기기를 돌려 가며 <b>자기 단서만</b> 확인하고
+        말로 공유해요. 마지막에 <b>✍️ 기록자</b>가 여섯 빈칸을 모두 입력합니다.</div>
+      <button id="btnThrone" class="goldbtn" style="margin-top:14px;">⚔️ 왕좌의 칼에 도전 →</button>
+    </div>`;
+  $('btnThrone').addEventListener('click', ()=> go('throne'));
+};
+
+/* =========================================================================
+   화면 4.6 — 왕좌의 칼 (패스앤플레이 지문 복원)
+   ========================================================================= */
+SCREENS.throne = function(){
+  let step = 0;             // PASS_ORDER 인덱스 (0..3), 4 = 빈칸 입력 단계
+  let revealed = false;     // 현재 사람이 단서를 펼쳐 봤는지
+  let triedWrong = false;   // 오답 제출 이력(빨간 표시용)
+  const values = ['','','','','',''];                         // 입력값 유지
+  const solved = [false,false,false,false,false,false];       // 빈칸별 정답 여부
+
+  function progHtml(){
+    return '<div class="prog">' + PASS_ORDER.map((_,i)=>{
+      const cls = i < step ? 'done' : (i === step ? 'now' : '');
+      return `<div class="p ${cls}"></div>`;
+    }).join('') + '</div>';
+  }
+
+  function render(){
+    if(step < 4){
+      const roleIdx = PASS_ORDER[step];
+      const role = ROLES[roleIdx];
+      const player = playerForRole(roleIdx);
+      stage.innerHTML = `
+        <div class="panel">
+          <div class="ptitle">⚔️ 왕좌의 칼 — 수능형 지문 협력 복원</div>
+          <div class="pdesc">각자 지문의 <b>서로 다른 부분</b>에 대한 단서를 갖고 있어요.
+            단서를 합쳐 여섯 빈칸(①~⑥)을 되살리면 칼이 뽑힙니다!</div>
+          ${thronePassageHtml()}
+          <div class="pass" style="margin-top:12px;">
+            <div class="big">📱</div>
+            <div class="who">${role.emoji} <span class="nm">${role.kr} ${esc(player)}</span>에게<br>기기를 넘겨주세요</div>
+            <div class="inst">${esc(player)} 님, 준비되면 아래 버튼으로 <b>혼자만</b> 단서를 확인하세요.<br>다른 팀원은 잠시 화면을 보지 않아요 🙈</div>
+            <div id="clueArea"></div>
+            ${progHtml()}
+          </div>
+        </div>`;
+      renderClueArea(roleIdx, role, player);
+    } else {
+      renderAnswer();
+    }
+  }
+
+  function renderClueArea(roleIdx, role, player){
+    const area = $('clueArea');
+    if(!revealed){
+      area.innerHTML = `<button id="btnReveal" style="margin-top:14px;">👁 내 단서 확인하기 (${role.kr}만!)</button>`;
+      $('btnReveal').addEventListener('click', ()=>{ revealed = true; renderClueArea(roleIdx, role, player); });
+    } else {
+      area.innerHTML = `
+        <div class="clue">
+          <div class="ch">${role.emoji} ${role.kr}의 비밀 단서</div>
+          <div class="ct">${THRONE.clues[roleIdx]}</div>
+        </div>
+        <div class="secret">🤫 이 단서는 화면을 숨긴 뒤 팀원들에게 <b>말로만</b> 전달하세요!</div>
+        <button id="btnHide" class="alt" style="margin-top:12px;">🙈 단서 숨기고 다음 사람에게 →</button>`;
+      $('btnHide').addEventListener('click', ()=>{ revealed = false; step++; render(); });
+    }
+  }
+
+  function renderAnswer(msgHtml){
+    const scribe = playerForRole(R_SCRIBE);
+    const fields = THRONE.blanks.map((b,i)=>{
+      const cls = solved[i] ? 'ok' : (triedWrong ? 'bad' : '');
+      return `<div>
+        <label>빈칸 ${b.no} ${solved[i] ? '✅' : ''}</label>
+        <input id="inB${i}" value="${esc(values[i])}" placeholder="${b.no}에 들어갈 단어…"
+          autocomplete="off" autocapitalize="off" spellcheck="false"
+          class="${cls}" ${solved[i] ? 'readonly' : ''}>
+      </div>`;
+    }).join('');
+    stage.innerHTML = `
+      <div class="panel">
+        <div class="ptitle">⚔️ 왕좌의 칼 — 수능형 지문 협력 복원</div>
+        <div class="pdesc">모든 단서가 공유됐어요! 팀이 <b>말로 의논</b>해서 여섯 빈칸을 정하세요.</div>
+        ${thronePassageHtml()}
+        <div class="pass" style="margin-top:12px;">
+          <div class="big">✍️</div>
+          <div class="who">기록자 <span class="nm">${esc(scribe)}</span>만<br>빈칸을 입력할 수 있어요</div>
+          <div class="inst">팀이 합의한 여섯 단어를 기록자가 입력합니다. (대소문자는 상관없어요)</div>
+          <div class="blankgrid">${fields}</div>
+          <button id="btnSubmit" style="margin-top:12px;">🗡 지문 복원 제출 (기록자 ${esc(scribe)})</button>
+          <button id="btnReview" class="sec" style="margin-top:8px;">🔄 단서 다시 돌려보기 (힌트 사용으로 기록돼요)</button>
+          <div id="answerMsg">${msgHtml || ''}</div>
+        </div>
+      </div>`;
+    const firstOpen = solved.findIndex(s=>!s);
+    if(firstOpen >= 0) $('inB'+firstOpen).focus();
+    function submit(){
+      // 입력값 읽어 저장
+      THRONE.blanks.forEach((b,i)=>{ values[i] = $('inB'+i).value.trim(); });
+      if(values.every(v=>!v)){ $('inB0').focus(); return; }  // 전부 비어 있으면 시도로 치지 않음
+      game.attempts++;
+      const wrong = [];
+      THRONE.blanks.forEach((b,i)=>{
+        const v = values[i].toLowerCase();
+        if(b.accept.includes(v)) solved[i] = true;
+        else { solved[i] = false; wrong.push(b.no); }
+      });
+      if(wrong.length === 0){
+        game.correct++;
+        throneVictory();
+      } else {
+        triedWrong = true;
+        renderAnswer(`<div class="wrongmsg">🗡 칼이 꿈쩍도 하지 않아요! 빈칸 <b>${wrong.join(' ')}</b>이(가) 아직 맞지 않아요.
+          맞은 빈칸은 그대로 두고, 빨간 칸만 단서를 되짚어 고쳐 보세요.</div>`);
+      }
+    }
+    $('btnSubmit').addEventListener('click', submit);
+    THRONE.blanks.forEach((b,i)=>{
+      $('inB'+i).addEventListener('keydown', e=>{ if(e.key === 'Enter') submit(); });
+    });
+    $('btnReview').addEventListener('click', ()=>{
+      game.hintCount++;         // 다시 돌려보기 = 힌트 사용으로 집계
+      THRONE.blanks.forEach((b,i)=>{ values[i] = $('inB'+i).value.trim(); }); // 입력값 보존
+      step = 0; revealed = false; render();
+    });
+  }
+
+  render();
+};
+
+/* ---------- 검이 빛난다 — 왕좌의 칼 복원 성공 연출 ---------- */
+function throneVictory(){
+  // ⏱ 소요 시간 확정 (여기서 멈춤 — 지문 복원 완료 시점)
+  game.finalTime = Math.round(elapsedSec());
+  stopHud();
+  $('hudTimer').textContent = fmtTime(game.finalTime);
+  game.items.push('👑');
+  updateHudItems();
+  stage.innerHTML = `
+    <div class="panel">
+      <div class="celebrate">
+        <div style="font-size:34px;">⚔️✨🗡✨</div>
+        <div class="word">검이 빛난다!</div>
+        <div class="muted" style="margin-top:4px;">여섯 빈칸이 채워지자 왕좌의 칼이 눈부시게 빛나며 뽑혀 나옵니다…</div>
+        <div class="okmsg" style="text-align:left;">지문 복원 완료! <b>obstacle · acquire · interpret ·
+          evidence · perspectives · significant</b> — 네 사람의 단서가 수능형 지문 하나를 되살렸어요 👏</div>
+        <div class="itemwin">
+          <span class="ie">👑</span>
+          <b>아이템 획득: 왕관 (Crown)</b><br>
+          왕좌가 열리고 ${esc(game.team)} 원정대가 어휘성의 새 주인이 되었어요!
+        </div>
+        <button id="btnFinal" class="goldbtn" style="margin-top:14px;">👑 성 점령 완료 확인 →</button>
+      </div>
+    </div>`;
+  $('btnFinal').addEventListener('click', ()=> go('victory'));
+}
+
+/* =========================================================================
+   화면 5 — 성 점령 완료 + 순위표(localStorage)
+   ========================================================================= */
+function loadBoard(){
+  try{
+    const raw = localStorage.getItem(LB_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function saveBoard(arr){
+  try{ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }catch(e){ /* 사생활 모드 등 저장 불가 시 무시 */ }
+}
+
+SCREENS.victory = function(){
+  const acc = game.attempts ? Math.round(game.correct / game.attempts * 100) : 100;
+  const usedHelp = [];
+  if(game.telescopeUsed) usedHelp.push('🔭 망원경');
+  if(game.hintCount > 0) usedHelp.push('🔄 단서 다시보기 ×' + game.hintCount);
+  const helpText = usedHelp.length ? usedHelp.join(' · ') : '없음 (대단해요!)';
+
+  // 순위표에 이번 기록 추가
+  const board = loadBoard();
+  const entry = {
+    id: 'r' + Date.now(),
+    school: game.school, team: game.team,
+    time: game.finalTime, acc: acc,
+    tele: game.telescopeUsed,
+    date: new Date().toISOString().slice(0,10),
+  };
+  board.push(entry);
+  board.sort((a,b)=> a.time - b.time);
+  saveBoard(board);
+
+  const rows = board.slice(0, 10).map((e,i)=>{
+    const me = e.id === entry.id ? ' class="me"' : '';
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return `<tr${me}><td class="rank">${medal}</td>
+      <td>${esc(e.school)}<br><span class="muted">${esc(e.team)}</span></td>
+      <td style="font-variant-numeric:tabular-nums;">${fmtTime(e.time)}</td>
+      <td>${e.acc}%</td></tr>`;
+  }).join('');
+
+  stage.innerHTML = `
+    <div class="panel victory">
+      <div class="vhead">
+        <div class="crown">👑</div>
+        <h2>성 점령 완료!</h2>
+        <div class="muted">${esc(game.school)} · ${esc(game.team)} 원정대</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">⏱ 소요 시간 ${game.penalty ? '(페널티 +'+game.penalty+'초 포함)' : ''}</div>
+          <div class="v">${fmtTime(game.finalTime)}</div></div>
+        <div class="stat"><div class="k">🎯 정답률</div>
+          <div class="v">${acc}% <span class="muted">(${game.correct}/${game.attempts}회)</span></div></div>
+        <div class="stat"><div class="k">🧰 힌트·망원경 사용</div>
+          <div class="v small">${helpText}</div></div>
+        <div class="stat"><div class="k">🏅 오늘 정복한 단어</div>
+          <div class="v small">binoculars · obstacle · approach<br>
+            <span style="font-size:12px;">obstacle · acquire · interpret · evidence · perspectives · significant</span></div></div>
+        <div class="stat" style="grid-column:1/-1;"><div class="k">⚔️ 왕좌의 칼</div>
+          <div class="v small">수능형 지문 복원 완료 ✅</div></div>
+      </div>
+      <div class="okmsg">네 사람의 단서가 모여 단어들과 수능형 지문 하나를 열었어요. 오늘 배운 단어를 내일 한 번 더 서로에게 설명해 보면 오래 남아요! 🌱</div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <div class="ptitle">🏆 순위표 <span class="muted" style="font-weight:400;">(이 기기 기준 · 시간순 상위 10팀)</span></div>
+      <table class="board">
+        <thead><tr><th>순위</th><th>학교 / 팀</th><th>시간</th><th>정답률</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="row" style="margin-top:14px;">
+        <button id="btnRetry" class="alt">🔁 다시 도전</button>
+        <button id="btnHome" class="sec" onclick="location.href='index.html'">🏠 처음 화면으로</button>
+      </div>
+    </div>`;
+
+  $('btnRetry').addEventListener('click', ()=>{
+    // 팀 정보는 유지, 진행 상태만 초기화하고 브리핑부터 재시작
+    Object.assign(game, { round:1, startTime:null, penalty:0, attempts:0, correct:0,
+                          telescopeUsed:false, hintCount:0, items:[], finalTime:0 });
+    stopHud();
+    $('hud').classList.add('hidden');
+    go('briefing');
+  });
+};
+
+/* ---------- 시작 ---------- */
+go('entry');
+</script>
+</body>
+</html>
