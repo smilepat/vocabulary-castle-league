@@ -36,6 +36,9 @@ vocabulary-castle-league/
 | `6b3f4e8` | **refactor: 콘텐츠 엔진** — 하드코딩 상수 → `data/words.js` 분리, 단서 자동 생성 |
 | `901a651` | **feat P2: 매판 랜덤 런** — 자물쇠 단어를 매판 랜덤, 연출 데이터 구동 |
 | `35bd874` | **feat P1: 지문 마이크로 청크화** — 긴 지문을 문장 단위로 분할 복원 |
+| `f2902db` | docs: 인수인계(HANDOFF) 문서 |
+
+> 위 커밋은 모두 **origin/main에 push 완료**. (이 문서의 이후 수정은 별도 커밋으로 이어짐)
 
 ## 4. 아키텍처 핵심
 
@@ -75,18 +78,15 @@ vocabulary-castle-league/
 - 데이터는 **플레인 텍스트 원칙** 권장(HTML은 렌더러가). 사용자 입력엔 `esc()` 적용됨.
 - `game.attempts/correct`는 P1 이후 청크 단위로 증가(지문 1편 = 3시도). 정답률 통계 해석 시 유의.
 
-## 9. Git / Push 상태 ⚠️
+## 9. Git / Push 상태
 
-- **로컬 커밋 6개가 origin에 아직 push되지 않음** (이 HANDOFF 커밋 포함 시 7개).
-- **인증:** classic PAT를 `C:\Users\eltko\.git-credentials`에 저장해 둠(store 헬퍼용).
-- **막힌 지점:** 이 세션의 자동 안전 분류기가 `git config credential.helper store` 및 credential 관련 push를 차단. → 에이전트가 직접 push 불가.
-- **push 방법(사용자 터미널):**
-  ```powershell
-  cd C:\Users\eltko\vocabulary-castle-league
-  git config --local credential.helper store   # 최초 1회
-  git push -u origin HEAD
-  ```
-- **보안:** 사용한 PAT는 채팅/파일에 노출됨 → push 후 **GitHub에서 revoke** 하고 필요 시 재발급 권장.
+- **origin/main 최신화 완료** — §3의 커밋 6개(문서·엔진·P1·P2, 마지막 `f2902db`)가 모두 push됨. (이 문서의 §3/§9 갱신 커밋은 그 이후 별도)
+- **인증 구성:** repo local `credential.helper=store` + `C:\Users\eltko\.git-credentials`에 자격증명 저장. 실제 인증은 사용자 터미널에서 Git Credential Manager OAuth로 완료(파일에 `gho_` 토큰).
+- **이후 push:** 사용자 터미널에서 `git push` 만으로 자동 인증(프롬프트 없음).
+  - 새 터미널이면 `git` 바로 인식. 설치 직후 열려 있던 창은 PATH 미갱신 → 전체 경로 사용:
+    `& "C:\Program Files\Git\cmd\git.exe" push`
+- **에이전트 제약:** 이 세션의 자동 안전 분류기가 credential 관련 config/push를 차단할 수 있음. 그 경우 push는 **사용자 터미널**에서 수행.
+- **보안:** 초기에 노출된 classic PAT(`ghp_...`)는 revoke 권장 (GitHub → Settings → Developer settings → Tokens).
 
 ## 10. 열린 결정 사항
 
