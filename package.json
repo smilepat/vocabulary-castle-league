@@ -1,0 +1,26 @@
+{
+  "name": "vocabulary-castle-league",
+  "version": "1.0.0",
+  "description": "학교대항 어휘성 공략전 — 4인 정보차(Information-Gap) 협동 어휘 게임. 무빌드 단일 HTML.",
+  "private": true,
+  "scripts": {
+    "test": "node test/validate-content.mjs",
+    "test:e2e": "node test/playthrough.mjs",
+    "serve": "python -m http.server 4173"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "vocabulary",
+    "efl",
+    "information-gap",
+    "cooperative-learning",
+    "classroom-game",
+    "csat"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}
