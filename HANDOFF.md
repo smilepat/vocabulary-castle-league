@@ -1,7 +1,10 @@
 # HANDOFF — Vocabulary Castle League
 
 > 작업 인수인계 문서. 이 저장소의 현재 상태·구조·남은 일·제약을 한 곳에 정리한다.
-> 최종 업데이트: 2026-07-25
+> 최종 업데이트: **2026-08-03**
+>
+> 세션 시작 규율은 [CLAUDE.md](CLAUDE.md), 지금 진행 상황은 [STATUS.md](STATUS.md).
+> 이 문서는 **구조·아키텍처·제약**을 다룬다.
 
 ---
 
@@ -9,7 +12,8 @@
 
 - **무엇:** 4인 협동 어휘 학습 게임. 각자 **서로 다른 단서**(뜻·형태·예문·어원)를 나눠 갖고 한 기기를 돌려 보며(패스앤플레이) 말로 조합해 단어를 맞히는 **정보차(Information-Gap)** 방식. 테마 = "학교대항 어휘성 공략전".
 - **저장소:** https://github.com/smilepat/vocabulary-castle-league (Public)
-- **로컬 경로:** `C:\Users\eltko\vocabulary-castle-league`
+- **로컬 경로:** PC마다 다르다. 새 PC에서는 `gh repo clone smilepat/vocabulary-castle-league`.
+  (예전 기록: `C:\Users\eltko\vocabulary-castle-league` — 특정 PC 기준이므로 그대로 믿지 말 것)
 - **실행:** `index.html` 더블클릭 (순수 정적, 빌드/서버 불필요). GitHub Pages 배포 호환.
 - **출신:** 원래 `smilepat/mindwrite` 안의 `castle.html`이었고, 독립 저장소로 분리됨(원격 세션에서 파일 3종 최초 push).
 
@@ -19,12 +23,21 @@
 vocabulary-castle-league/
 ├── index.html            # 게임 본체 (HTML/CSS/JS 단일 파일, 화면 상태 머신)
 ├── data/words.js         # ★ 콘텐츠 데이터 (단어 뱅크 + 지문). 문항 추가는 여기만 편집
+├── test/
+│   ├── validate-content.mjs  # 콘텐츠 계약 검사 (무의존) — npm test
+│   └── playthrough.mjs       # 브라우저 완주 검증 (Playwright) — npm run test:e2e
+├── package.json          # 스크립트·devDependency(@playwright/test). 게임 자체는 여전히 무빌드
+├── CLAUDE.md             # 멀티 PC 작업 규율 (세션 시작 pull · 작업마다 push · 종료 전 STATUS 갱신)
+├── STATUS.md             # 지금 진행 상황 (project-dashboard 카드 소스)
 ├── README.md             # 게임 소개
 ├── LICENSE               # Proprietary
 ├── DEVELOPMENT_PLAN.md   # Fable 5 작성 발전 계획 (Phase 0~4)
 ├── MARKET_FIT.md         # 시장 적합성 전략 (숏폼 세대 대응, 트렌드 반영)
 └── HANDOFF.md            # (이 문서)
 ```
+
+> `package.json` 이 생겼지만 **게임 실행에는 여전히 빌드도 설치도 필요 없다.**
+> npm 은 검증 도구 전용이다. `index.html` 더블클릭은 그대로 동작한다.
 
 ## 3. 지금까지 한 일 (커밋 순)
 
@@ -37,8 +50,15 @@ vocabulary-castle-league/
 | `901a651` | **feat P2: 매판 랜덤 런** — 자물쇠 단어를 매판 랜덤, 연출 데이터 구동 |
 | `35bd874` | **feat P1: 지문 마이크로 청크화** — 긴 지문을 문장 단위로 분할 복원 |
 | `f2902db` | docs: 인수인계(HANDOFF) 문서 |
+| `9ec04e5` (7/27) | chore: `STATUS.md` 추가 (project-dashboard 카드) |
+| `d8754bd` (7/27) | **test: 콘텐츠 계약 검사 + 브라우저 완주 검증** — `npm test` / `npm run test:e2e` 도입 |
+| `d2c2a59` (8/01) | **docs: 멀티 PC 인수인계 규율 성문화** — `CLAUDE.md` |
 
 > 위 커밋은 모두 **origin/main에 push 완료**. (이 문서의 이후 수정은 별도 커밋으로 이어짐)
+>
+> ⚠️ 이 저장소는 **여러 PC에서 번갈아** 작업한다(최근 `LAPTOP-H10A7AH0`). `CLAUDE.md` 규율대로
+> 세션 시작에 `git pull --ff-only`, 작업 단위마다 push, 종료 전 `STATUS.md` 갱신.
+> **push하지 않은 작업은 다른 PC에서 존재하지 않는 것과 같다.**
 
 ## 4. 아키텍처 핵심
 
@@ -53,9 +73,22 @@ vocabulary-castle-league/
 ## 5. 실행·테스트
 
 - 실행: `index.html` 더블클릭 또는 `Start-Process index.html`.
-- **자동 문법검사 불가:** 이 PC에 Node 미설치. 변경 후 반드시 **브라우저에서 한 판 끝까지 플레이**해 확인.
-  - 확인 포인트: ①자물쇠 단어 매판 변경 ②왕좌의 칼 "문장 1/3→2/3→3/3" 분할 ③단서·정답 판정·힌트.
-- git 실행: 이 PC에서 `git`이 PATH에 없을 수 있음. 전체 경로: `C:\Program Files\Git\cmd\git.exe` (새 터미널에선 PATH 인식됨).
+
+**✅ 2026-07-27부터 자동 검증이 있다** (이전 판의 "자동 문법검사 불가 · Node 미설치"는 더 이상 사실이 아니다):
+
+| 명령 | 하는 일 |
+|---|---|
+| `npm test` | **콘텐츠 계약 검사** (`test/validate-content.mjs`, 의존성 0). 철자 조각↔정답 불일치, 예문에 정답 노출, `accept` 누락, `chunks` 빈칸 커버리지 등을 잡는다 |
+| `npm run test:e2e` | **브라우저 완주 검증** (`test/playthrough.mjs`, Playwright). 전 구간 자동 플레이 |
+| `npm run serve` | `python -m http.server 4173` — e2e 전에 띄운다 |
+
+- `data/words.js` 를 고쳤으면 **`npm test` 를 먼저** 돌린다. 계약 위반은 브라우저에서
+  플레이하다 뒤늦게 발견하는 것보다 여기서 잡는 게 훨씬 싸다.
+- 수동 확인 포인트(여전히 유효): ①자물쇠 단어 매판 변경 ②왕좌의 칼 "문장 1/3→2/3→3/3" 분할
+  ③단서·정답 판정·힌트.
+- Node 는 `>=18` 필요(`package.json` engines). Node 가 없는 PC라면 게임 실행·수동 플레이는
+  그대로 되지만 자동 검증은 못 돌린다.
+- git 실행: `git`이 PATH에 없는 PC가 있음. 전체 경로: `C:\Program Files\Git\cmd\git.exe`.
 
 ## 6. 시장 전략 요약 (MARKET_FIT.md)
 
