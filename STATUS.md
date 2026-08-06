@@ -2,7 +2,7 @@
 project: vocabulary-castle-league
 status: active
 progress: 70
-updated: 2026-08-01
+updated: 2026-08-06
 pc: LAPTOP-H10A7AH0
 ---
 
@@ -27,6 +27,10 @@ pc: LAPTOP-H10A7AH0
 - [x] 콘텐츠 분리 — `data/words.js`만 편집하면 문항 추가·수정 가능
 - [x] **검증 도구**(2026-07-27) — `npm test`(무의존 콘텐츠 계약) · `npm run test:e2e`(브라우저 완주)
 - [x] **멀티 PC 인수인계 규율 성문화**(2026-08-01) — `CLAUDE.md`에 세션 시작 pull·작업마다 push·종료 전 STATUS.md 갱신 규칙 명시
+- [x] **규율을 저장소 공용으로 분리**(2026-08-06) — [REPO_OPS.md](REPO_OPS.md)로 떼어내
+      `restoration-reader`·`intuitive-relation-sketching`과 **동일 사본** 공유. `CLAUDE.md`는
+      `@REPO_OPS.md`를 임포트하고 이 저장소 고유 규칙만 남김. **저장소 문서가 각 PC의 로컬
+      메모리·설정보다 항상 우선**임을 REPO_OPS 0절에 명시
 - [ ] **콘텐츠 확충** — 현재 단어 8개·지문 1개. 라운드 반복에 필요한 최소 규모 미달
 - [ ] 실제 교실 1회 투입 · 관찰
 - [ ] (선택) 4인 실시간 멀티 — 서버 필요, 현재는 패스앤플레이로 대체

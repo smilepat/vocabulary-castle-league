@@ -1,10 +1,13 @@
 # HANDOFF — Vocabulary Castle League
 
 > 작업 인수인계 문서. 이 저장소의 현재 상태·구조·남은 일·제약을 한 곳에 정리한다.
-> 최종 업데이트: **2026-08-03**
+> 최종 업데이트: **2026-08-06**
 >
-> 세션 시작 규율은 [CLAUDE.md](CLAUDE.md), 지금 진행 상황은 [STATUS.md](STATUS.md).
+> 세션 시작 규율은 [REPO_OPS.md](REPO_OPS.md)(세 저장소 공용) + [CLAUDE.md](CLAUDE.md)(이
+> 저장소 고유), 지금 진행 상황은 [STATUS.md](STATUS.md).
 > 이 문서는 **구조·아키텍처·제약**을 다룬다.
+>
+> 저장소 문서는 각 PC의 로컬 메모리·설정보다 **항상 우선**한다(REPO_OPS 0절).
 
 ---
 
@@ -27,7 +30,8 @@ vocabulary-castle-league/
 │   ├── validate-content.mjs  # 콘텐츠 계약 검사 (무의존) — npm test
 │   └── playthrough.mjs       # 브라우저 완주 검증 (Playwright) — npm run test:e2e
 ├── package.json          # 스크립트·devDependency(@playwright/test). 게임 자체는 여전히 무빌드
-├── CLAUDE.md             # 멀티 PC 작업 규율 (세션 시작 pull · 작업마다 push · 종료 전 STATUS 갱신)
+├── REPO_OPS.md           # ★ 멀티 PC 작업 규율 (세 저장소 공용 정본, 동일 사본)
+├── CLAUDE.md             # 이 저장소 고유 규칙 + `@REPO_OPS.md` 임포트
 ├── STATUS.md             # 지금 진행 상황 (project-dashboard 카드 소스)
 ├── README.md             # 게임 소개
 ├── LICENSE               # Proprietary
