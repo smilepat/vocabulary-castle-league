@@ -86,15 +86,11 @@ if (-not $upstream) {
   $problems.Add("현재 브랜치 '$branch'에 원격 추적 브랜치가 없습니다 — 작업이 다른 PC로 전달되지 않습니다.")
 }
 else {
-  if ($HookEvent -eq 'SessionStart') { & $git -C $RepoRoot fetch --quiet 2>$null | Out-Null }
-
+  # fetch/behind 는 공식 훅(session-status.mjs)이 세션 시작에 이미 본다. 여기서는
+  # 네트워크 없이 로컬만 확인해 중복 보고를 피한다.
   $counts = (& $git -C $RepoRoot rev-list --left-right --count "$upstream...HEAD" 2>$null)
   if ($counts -match '^\s*(\d+)\s+(\d+)') {
-    $behind = [int]$Matches[1]
     $ahead = [int]$Matches[2]
-    if ($behind -gt 0) {
-      $problems.Add("origin보다 $behind 커밋 뒤처져 있습니다 — 먼저 ``git pull --ff-only`` 하세요.")
-    }
     if ($ahead -gt 0) {
       $problems.Add("push하지 않은 커밋이 $ahead 개 있습니다 — 다른 PC에서는 존재하지 않는 작업입니다.")
     }
@@ -128,8 +124,10 @@ else {
     }
   }
 
-  if ($statusPc -and $statusPc -ne $pcName -and $HookEvent -eq 'SessionStart') {
-    $problems.Add("STATUS.md의 마지막 작업 PC가 '$statusPc'입니다 (지금은 '$pcName') — 인수인계 내용을 먼저 확인하세요.")
+  # pc: 는 소유권 lock 이다 (repo-ops-system MULTI_PC_OPS.md §1). 다른 PC 이름인 채로
+  # 작업했다면 lock 을 넘겨받지 않은 것이다.
+  if ($statusPc -and $statusPc -ne $pcName) {
+    $problems.Add("STATUS.md의 `pc:` 가 '$statusPc'입니다 (여기는 '$pcName') — 소유권 lock을 넘겨받지 않았습니다. `pc:`를 이 PC로 바꿔 push하세요.")
   }
 }
 
