@@ -67,6 +67,58 @@ pc: <이 PC 이름>
 그런 다음 `docs: update status`로 commit + push. **push하지 않은 작업은 다른
 PC에서 존재하지 않는 것과 같다.**
 
+## 자동 점검 (repo-ops-system 적용 여부 알림)
+
+규율을 문서로만 두면 지키지 않아도 아무 일이 안 일어난다. 그래서 Claude Code 훅으로
+**세션 시작**과 **세션 종료(Stop)** 때 자동 점검한다.
+
+- `scripts/repo-ops-check.ps1` — 점검 규칙. **저장소가 소유**하므로 pull만 하면 모든 PC가
+  같은 규칙으로 점검받는다. 검사 항목: REPO_OPS.md 존재 · `CLAUDE.md`의 `@REPO_OPS.md`
+  임포트 · git 신원 · origin 대비 behind/ahead · 커밋 안 된 변경 · STATUS.md 존재와
+  최신성(마지막 커밋 날짜와 비교) · 마지막 작업 PC.
+- `scripts/repo-ops-guard.ps1` — 런처. **각 PC의 `~/.claude/`에 1회 설치**한다.
+  현재 저장소에 점검 스크립트가 있으면 실행하고, **없으면 "이 저장소는 repo-ops-system
+  관리 대상이 아니다"라고 경고**한다. 미적용 저장소를 잡아내는 게 이 런처의 존재 이유다.
+
+문제가 없으면 아무 것도 출력하지 않는다.
+
+### 부록: PC 1회 설치
+
+`~/.claude`는 git으로 공유되지 않으므로 **PC마다 한 번** 해야 한다.
+
+```powershell
+Copy-Item scripts\repo-ops-guard.ps1 "$HOME\.claude\repo-ops-guard.ps1" -Force
+```
+
+그리고 `~/.claude/settings.json`의 `hooks`에 아래를 병합한다(기존 키는 유지):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ {
+        "type": "command",
+        "shell": "powershell",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$HOME\\.claude\\repo-ops-guard.ps1\" -HookEvent SessionStart",
+        "timeout": 30,
+        "statusMessage": "repo-ops 점검 중..."
+      } ] }
+    ],
+    "Stop": [
+      { "hooks": [ {
+        "type": "command",
+        "shell": "powershell",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$HOME\\.claude\\repo-ops-guard.ps1\" -HookEvent Stop",
+        "timeout": 20
+      } ] }
+    ]
+  }
+}
+```
+
+등록 후 `/hooks`를 한 번 열면 설정이 다시 로드된다. 스크립트는 **UTF-8 BOM**으로
+저장해야 한다 — Windows PowerShell 5.1은 BOM이 없으면 한글을 ANSI로 읽어 파싱에 실패한다.
+
 ## PC 차이에서 오는 주의점
 
 - git이 PATH에 없는 PC가 있다 → 그럴 때는
